@@ -1,443 +1,994 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Теорема об Анне</title>
-<meta name="theme-color" content="#F7F6F1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Формула Анны</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23F7D3DF'/%3E%3Ctext x='32' y='42' font-size='28' text-anchor='middle' fill='%23C75B7F' font-family='Georgia'%3E%E2%88%9E%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-/* ─────────────────────────────  ТОКЕНЫ  ───────────────────────────── */
+/* ============================================================
+   «ФОРМУЛА АННЫ» — интерактивный свадебный квиз
+   Пастель, чёрная типографика, математика и немного магии.
+   ============================================================ */
+
 :root{
-  --paper:#F7F6F1;
-  --paper-edge:#ECE9DF;
-  --grid:#BCD0DD;
-  --grid-bold:#9DB9CB;
-  --ink:#1F2B45;
-  --ink-soft:#5D6982;
-  --pen:#C0392B;
-  --night:#0E1324;
-  --gold:#E4C68C;
-  --wax:#8E2A26;
-  --env:#F2EADC;
-  --env-2:#E7DCC8;
-
-  --bg:var(--paper);
-  --fg:var(--ink);
-  --fg-soft:var(--ink-soft);
-
-  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Consolas,monospace;
-  --hand:"Caveat","Segoe Script","Bradley Hand",cursive;
-  --serif:"Cormorant Garamond","Times New Roman",Georgia,serif;
-
-  --step:clamp(15px,1.05vw + 12px,18px);
+  --paper:#FFF7FA;
+  --paper-2:#FCEEF4;
+  --ink:#17141A;
+  --ink-soft:#5C525B;
+  --rose:#E2799A;
+  --rose-deep:#C75B7F;
+  --rose-ink:#A94A6A;
+  --blush:#F7D3DF;
+  --blush-2:#FBE4EC;
+  --line:rgba(199,91,127,.16);
+  --line-strong:rgba(199,91,127,.35);
+  --card:#FFFFFF;
+  --ok:#6FA57E;
+  --shadow:0 10px 30px rgba(169,74,106,.10), 0 2px 8px rgba(169,74,106,.08);
+  --serif:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans:'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+
 body{
-  margin:0;
-  background:var(--bg);
-  color:var(--fg);
-  font-family:var(--mono);
-  font-size:var(--step);
-  line-height:1.6;
-  overflow-x:hidden;
-  transition:background-color 2.4s ease,color 2.4s ease;
-}
-body.night{
-  --bg:var(--night);
-  --fg:#F3ECE0;
-  --fg-soft:#B6AE9F;
-}
-
-/* ─────────────────────────────  СЛОИ ФОНА  ───────────────────────────── */
-#grid,#photos,#veil{position:fixed;inset:0;pointer-events:none}
-#grid{
+  font-family:var(--sans);
+  color:var(--ink);
+  background-color:var(--paper);
   background-image:
-    linear-gradient(var(--grid) 1px,transparent 1px),
-    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:26px 26px;
-  opacity:.55;
-  transition:opacity 2.2s ease;
-  z-index:0;
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:36px 36px;
+  min-height:100dvh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
 }
-body.night #grid{opacity:0}
-
-#photos{z-index:0;opacity:0;transition:opacity 3.2s ease}
-body.night #photos{opacity:.5}
-.ph{
-  position:absolute;inset:0;
-  background-size:cover;background-position:center;
-  opacity:0;transition:opacity 2.4s ease,transform 12s linear;
-  transform:scale(1.06);
+body::after{ /* мягкая виньетка поверх «миллиметровки» */
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(ellipse at 50% 40%, transparent 45%, rgba(255,247,250,.9) 100%);
 }
-.ph.on{opacity:1;transform:scale(1.14)}
 
-#veil{
-  z-index:1;opacity:0;transition:opacity 3.2s ease;
-  background:radial-gradient(120% 90% at 50% 45%,rgba(14,19,36,.35) 0%,rgba(14,19,36,.82) 62%,rgba(14,19,36,.96) 100%);
+::selection{ background:var(--blush); color:var(--rose-ink); }
+
+/* ---------- декоративная «математика» на полях ---------- */
+.math-decor{ position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.math-decor span{
+  position:absolute; font-family:var(--mono); color:var(--rose-deep);
+  opacity:.10; user-select:none; animation:floaty 9s ease-in-out infinite;
 }
-body.night #veil{opacity:1}
+.math-decor svg{ position:absolute; opacity:.14; }
+.math-decor .d1{ top:8%;  left:4%;  font-size:2rem;   animation-delay:-1s; }
+.math-decor .d2{ top:70%; left:7%;  font-size:1.2rem; animation-delay:-3s; }
+.math-decor .d3{ top:16%; right:6%; font-size:1.5rem; animation-delay:-5s; }
+.math-decor .d4{ top:78%; right:9%; font-size:2.4rem; animation-delay:-2s; }
+.math-decor .d5{ top:44%; left:2%;  font-size:1rem;   animation-delay:-6s; }
+.math-decor .d6{ top:52%; right:3%; font-size:1rem;   animation-delay:-4s; }
+@keyframes floaty{ 0%,100%{ transform:translateY(0) rotate(-2deg);} 50%{ transform:translateY(-14px) rotate(2deg);} }
+@media (max-width:760px){ .math-decor span{ display:none; } }
 
-/* ─────────────────────────────  КАРКАС  ───────────────────────────── */
-main{position:relative;z-index:2}
+/* ---------- шапка ---------- */
+header{
+  position:fixed; top:0; left:0; right:0; z-index:50; height:58px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 clamp(14px, 3vw, 28px);
+  background:rgba(255,247,250,.82); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ font-family:var(--mono); font-size:.82rem; color:var(--rose-ink); letter-spacing:.04em; white-space:nowrap; }
+.brand b{ font-weight:700; }
+.steps{ display:flex; gap:6px; align-items:center; font-family:var(--mono); font-size:.72rem; }
+.steps .st{
+  min-width:30px; height:26px; padding:0 8px; display:grid; place-items:center;
+  border:1px solid var(--line-strong); border-radius:999px; color:var(--ink-soft);
+  background:transparent; transition:all .35s ease;
+}
+.steps .st.done{ color:var(--rose-deep); border-color:var(--rose); background:var(--blush-2); }
+.steps .st.now{ color:#fff; background:var(--rose-deep); border-color:var(--rose-deep); box-shadow:0 4px 12px rgba(199,91,127,.35); }
+.hdr-right{ display:flex; align-items:center; gap:10px; }
+.chip{
+  font-family:var(--mono); font-size:.72rem; color:var(--rose-ink);
+  background:var(--blush-2); border:1px solid var(--line-strong);
+  padding:5px 12px; border-radius:999px; white-space:nowrap;
+  transition:opacity .3s; opacity:0;
+}
+.chip.show{ opacity:1; }
+.icon-btn{
+  width:32px; height:32px; border-radius:9px; border:1px solid var(--line-strong);
+  background:#fff; color:var(--rose-ink); cursor:pointer; display:grid; place-items:center;
+  font-size:.95rem; transition:all .2s;
+}
+.icon-btn:hover{ background:var(--blush-2); }
+@media (max-width:640px){ .steps{ display:none; } .brand{ font-size:.72rem; } }
+
+/* ---------- экраны ---------- */
+main{ position:relative; z-index:1; }
 .screen{
-  display:none;
-  min-height:100svh;
-  padding:clamp(24px,5vw,56px) clamp(20px,5vw,40px);
-  padding-bottom:calc(clamp(24px,5vw,56px) + env(safe-area-inset-bottom));
-  flex-direction:column;justify-content:center;align-items:center;
+  min-height:100dvh; display:none;
+  align-items:center; justify-content:center;
+  padding:92px clamp(16px,4vw,40px) 60px;
 }
-.screen.on{display:flex;animation:screenIn .8s ease both}
-@keyframes screenIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.wrap{width:100%;max-width:640px}
+.screen.active{ display:flex; animation:screenIn .7s cubic-bezier(.22,.9,.3,1) both; }
+@keyframes screenIn{ from{ opacity:0; transform:translateY(22px);} to{ opacity:1; transform:none;} }
+.stage{ width:100%; max-width:860px; }
+.stage.narrow{ max-width:680px; }
 
-/* ─────────────────────────────  ТИПОГРАФИКА  ───────────────────────────── */
+/* ---------- типографика ---------- */
 .eyebrow{
-  font-family:var(--mono);font-size:.72rem;font-weight:500;
-  letter-spacing:.28em;text-transform:uppercase;color:var(--fg-soft);
+  font-family:var(--mono); font-size:.78rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--rose-deep); margin-bottom:18px; display:flex; align-items:center; gap:12px;
 }
-.hand-title{
-  font-family:var(--hand);font-weight:700;
-  font-size:clamp(3rem,13vw,5.4rem);line-height:.94;
-  margin:.18em 0 .3em;letter-spacing:.01em;
-}
-.given{
-  border-left:2px solid var(--grid-bold);
-  padding:2px 0 2px 18px;margin:0 0 34px;
-  font-size:.94rem;color:var(--fg-soft);
-}
-.given b{color:var(--fg);font-weight:500}
-.given div + div{margin-top:6px}
+.eyebrow::after{ content:''; height:1px; flex:1; max-width:120px; background:var(--line-strong); }
+h1,h2{ font-family:var(--serif); font-weight:600; line-height:1.12; letter-spacing:-.01em; }
+h1{ font-size:clamp(2.2rem, 5.4vw, 3.6rem); }
+h2{ font-size:clamp(1.7rem, 4vw, 2.5rem); }
+.lead{ font-size:clamp(1.02rem, 1.8vw, 1.2rem); color:var(--ink-soft); line-height:1.65; }
+.serif-line{ font-family:var(--serif); font-size:clamp(1.5rem,3.4vw,2.3rem); line-height:1.35; font-weight:500; }
+.mono{ font-family:var(--mono); }
 
-.margin-note{
-  font-family:var(--hand);color:var(--pen);
-  font-size:1.5rem;line-height:1.15;
-  transform:rotate(-3.5deg);
-  display:inline-block;margin-bottom:22px;
-  opacity:.92;
+/* печатная машинка */
+.tw{ min-height:1.4em; }
+.tw.typing::after{
+  content:'▌'; color:var(--rose-deep); margin-left:2px;
+  animation:blink .8s steps(1) infinite;
+}
+@keyframes blink{ 50%{ opacity:0; } }
+.cursor-idle::after{
+  content:'▌'; color:var(--rose-deep); margin-left:2px;
+  animation:blink .8s steps(1) infinite;
 }
 
-/* ─────────────────────────────  КНОПКИ  ───────────────────────────── */
+/* ---------- кнопки ---------- */
 .btn{
-  font-family:var(--mono);font-size:.82rem;font-weight:500;
-  letter-spacing:.14em;text-transform:uppercase;
-  color:var(--paper);background:var(--ink);
-  border:0;border-radius:2px;
-  padding:16px 30px;cursor:pointer;
-  transition:transform .25s ease,opacity .25s ease,background-color .3s ease;
+  font-family:var(--sans); font-weight:600; font-size:1rem;
+  border:1.5px solid var(--ink); background:#fff; color:var(--ink);
+  padding:13px 26px; border-radius:999px; cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s, color .18s, border-color .18s;
+  display:inline-flex; align-items:center; gap:10px;
 }
-.btn:hover{transform:translateY(-2px)}
-.btn:active{transform:translateY(0)}
-.btn:disabled{opacity:.28;cursor:not-allowed;transform:none}
-.btn:focus-visible,.opt:focus-within,.env:focus-visible{outline:2px solid var(--pen);outline-offset:4px}
-body.night .btn{background:var(--gold);color:#161B2E}
+.btn:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(23,20,26,.12); }
+.btn:active{ transform:translateY(0); }
+.btn:focus-visible{ outline:3px solid var(--rose); outline-offset:3px; }
+.btn-primary{
+  background:linear-gradient(135deg, var(--rose) 0%, var(--rose-deep) 100%);
+  border-color:transparent; color:#fff;
+  font-size:1.1rem; padding:16px 38px;
+  box-shadow:0 10px 24px rgba(199,91,127,.35);
+}
+.btn-primary:hover{ box-shadow:0 14px 32px rgba(199,91,127,.45); }
+.btn-ghost{ border-color:var(--line-strong); color:var(--rose-ink); background:transparent; }
+.btn-ghost:hover{ background:var(--blush-2); box-shadow:none; }
+.btn-sm{ font-size:.86rem; padding:9px 18px; }
+.btn[disabled]{ opacity:.45; pointer-events:none; }
+.fade-in{ animation:fadeIn .8s ease both; }
+@keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+.rise-in{ animation:riseIn .7s cubic-bezier(.22,.9,.3,1) both; }
+@keyframes riseIn{ from{ opacity:0; transform:translateY(16px);} to{ opacity:1; transform:none;} }
 
-.btn-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:34px}
-.counter{font-size:.76rem;letter-spacing:.1em;color:var(--fg-soft)}
+/* ---------- карточки ---------- */
+.card{
+  background:var(--card); border:1px solid var(--line);
+  border-radius:20px; box-shadow:var(--shadow);
+  padding:clamp(22px,4vw,40px);
+}
+.paper-corner{ position:relative; }
+.paper-corner::before, .paper-corner::after{
+  content:''; position:absolute; width:22px; height:22px;
+  border:1.5px solid var(--rose); opacity:.6;
+}
+.paper-corner::before{ top:-7px; left:-7px; border-right:none; border-bottom:none; border-radius:6px 0 0 0; }
+.paper-corner::after{ bottom:-7px; right:-7px; border-left:none; border-top:none; border-radius:0 0 6px 0; }
 
-/* ─────────────────────────────  ВАРИАНТЫ  ───────────────────────────── */
-.q-head{font-size:.86rem;letter-spacing:.06em;color:var(--fg-soft);margin-bottom:4px}
-.q-title{font-family:var(--hand);font-size:clamp(2rem,6.5vw,2.9rem);line-height:1.05;margin:0 0 26px}
+/* ---------- штампы ---------- */
+.stamp{
+  display:inline-block; font-family:var(--mono); font-weight:700;
+  font-size:clamp(.95rem,2vw,1.25rem); letter-spacing:.18em; text-transform:uppercase;
+  color:var(--rose-deep); border:2.5px solid var(--rose-deep);
+  padding:8px 20px; border-radius:8px; transform:rotate(-5deg);
+  animation:stampIn .45s cubic-bezier(.2,1.6,.4,1) both;
+  background:rgba(255,255,255,.7);
+}
+.stamp.ok{ color:var(--ok); border-color:var(--ok); }
+@keyframes stampIn{
+  from{ opacity:0; transform:rotate(-5deg) scale(1.9); }
+  to{ opacity:1; transform:rotate(-5deg) scale(1); }
+}
 
-.opts{list-style:none;margin:0;padding:0;position:relative}
-.opt{
-  display:flex;gap:14px;align-items:flex-start;
-  padding:11px 6px;border-radius:3px;cursor:pointer;
-  transition:background-color .2s ease;
+/* ---------- ВСТУПЛЕНИЕ ---------- */
+#s-intro .stage{ text-align:left; }
+.intro-hello{ font-family:var(--serif); font-size:clamp(2rem,5.4vw,3.4rem); font-weight:600; margin-bottom:14px; }
+.intro-sub{ font-size:clamp(1.05rem,2vw,1.3rem); color:var(--ink-soft); line-height:1.6; }
+.data-block{
+  margin:34px 0 8px; padding:26px clamp(20px,3vw,34px);
+  border-left:2.5px solid var(--rose); background:rgba(255,255,255,.55);
+  border-radius:0 16px 16px 0;
 }
-.opt:hover{background:rgba(157,185,203,.16)}
-.opt input{position:absolute;opacity:0;width:0;height:0}
-.box{
-  flex:0 0 auto;width:23px;height:23px;margin-top:2px;
-  border:1.5px solid var(--grid-bold);border-radius:2px;
-  background:rgba(255,255,255,.55);
-  display:grid;place-items:center;transition:border-color .2s ease;
+.data-block .dt{ font-family:var(--mono); font-size:.8rem; letter-spacing:.14em; text-transform:uppercase; color:var(--rose-deep); margin-bottom:14px; }
+.data-line{
+  display:flex; gap:12px; align-items:baseline; margin:9px 0;
+  font-size:clamp(1rem,1.9vw,1.18rem); opacity:0; transform:translateX(-8px);
+  transition:opacity .5s ease, transform .5s ease;
 }
-.opt input:checked ~ .box{border-color:var(--ink)}
-.box svg{width:17px;height:17px;overflow:visible}
-.box path{
-  fill:none;stroke:var(--pen);stroke-width:2.6;
-  stroke-linecap:round;stroke-linejoin:round;
-  stroke-dasharray:30;stroke-dashoffset:30;
-  transition:stroke-dashoffset .35s cubic-bezier(.3,.9,.4,1);
-}
-.opt input:checked ~ .box path{stroke-dashoffset:0}
-.opt .txt{font-family:var(--serif);font-size:1.24rem;line-height:1.35;padding-top:1px}
+.data-line.show{ opacity:1; transform:none; }
+.data-line .ck{ color:var(--rose-deep); font-family:var(--mono); font-weight:700; }
+.intro-tail{ margin-top:26px; font-family:var(--serif); font-size:clamp(1.3rem,2.8vw,1.8rem); font-style:italic; }
+.intro-actions{ margin-top:36px; }
+.down-hint{ font-family:var(--mono); color:var(--rose-deep); font-size:1.1rem; margin-top:18px; animation:bob 1.6s ease-in-out infinite; display:inline-block; }
+@keyframes bob{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(6px);} }
+.skip-hint{ margin-top:20px; font-family:var(--mono); font-size:.72rem; color:var(--ink-soft); opacity:.65; }
 
-/* ─────────────────────────────  ПРОВЕРКА  ───────────────────────────── */
-.answers-mini{margin:0 0 30px;padding:0;list-style:none;position:relative}
-.answers-mini li{
-  font-family:var(--serif);font-size:1.06rem;line-height:1.5;
-  color:var(--fg-soft);opacity:0;animation:fadeUp .5s ease forwards;
-}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-#strike{position:absolute;inset:-8px -4px;width:calc(100% + 8px);height:calc(100% + 16px);overflow:visible}
-#strike path{
-  fill:none;stroke:var(--pen);stroke-width:3;stroke-linecap:round;
-  opacity:.9;stroke-dasharray:2000;stroke-dashoffset:2000;
-}
-#strike.draw path{animation:draw .85s cubic-bezier(.6,.05,.3,1) forwards}
-#strike.draw path:nth-child(2){animation-delay:.35s}
-@keyframes draw{to{stroke-dashoffset:0}}
-
-.logs{display:flex;flex-direction:column;gap:12px;margin-bottom:26px}
-.log{
-  display:flex;align-items:center;gap:12px;
-  font-size:.92rem;letter-spacing:.04em;color:var(--fg-soft);
-  opacity:0;transform:translateY(5px);
-  transition:opacity .4s ease,transform .4s ease,color .4s ease;
-}
-.log.show{opacity:1;transform:none}
-.log.done{color:var(--fg)}
-.spin{
-  flex:0 0 auto;width:13px;height:13px;border-radius:50%;
-  border:1.5px solid var(--grid-bold);border-top-color:var(--ink);
-  animation:spin .8s linear infinite;
-}
-.log.done .spin{border:0;animation:none;position:relative}
-.log.done .spin::after{content:"✓";position:absolute;inset:-4px 0 0 -2px;color:var(--pen);font-size:15px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.bar{height:2px;background:rgba(157,185,203,.4);overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--ink);transition:width .9s ease}
-
-/* ─────────────────────────────  РЕЗУЛЬТАТ  ───────────────────────────── */
-.verdict{
-  font-family:var(--hand);color:var(--pen);
-  font-size:clamp(2.6rem,10vw,4.2rem);line-height:1;
-  transform:rotate(-1.6deg);margin:0 0 22px;
-}
-.verdict-sub{font-family:var(--serif);font-size:1.3rem;line-height:1.5;margin:0 0 8px;max-width:34ch}
-.because{font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-soft);margin:30px 0 14px}
-
-.media{
-  position:relative;max-width:360px;margin:0 auto;
-  background:#0E1324;border-radius:3px;overflow:hidden;
-  box-shadow:0 18px 40px -22px rgba(31,43,69,.6);
-}
-.media video{display:block;width:100%;max-height:62svh;background:#0E1324}
-.quote-card{
-  max-width:380px;margin:0 auto;padding:34px 28px;
+/* ---------- заставки раундов ---------- */
+.round-cover{ text-align:center; }
+.round-cover .rc-num{
+  font-family:var(--mono); font-size:.85rem; letter-spacing:.2em; color:var(--rose-deep);
+  border:1px solid var(--line-strong); border-radius:999px; display:inline-block; padding:6px 18px; margin-bottom:22px;
   background:rgba(255,255,255,.6);
-  border:1px solid var(--grid);
-  font-family:var(--hand);font-size:1.9rem;line-height:1.25;text-align:center;
 }
-.caption{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--fg-soft);text-align:center;margin-top:14px}
+.round-cover h2{ margin-bottom:16px; }
+.round-cover .lead{ max-width:560px; margin:0 auto 34px; }
 
-/* ─────────────────────────────  ФИНАЛ  ───────────────────────────── */
-#s-final .wrap{max-width:600px;text-align:center}
-.fline{
-  font-family:var(--serif);font-weight:300;
-  font-size:clamp(1.5rem,5.4vw,2.15rem);line-height:1.4;
-  margin:0 0 .55em;opacity:0;transform:translateY(14px);filter:blur(3px);
-}
-.fline.show{animation:lineIn 1.5s cubic-bezier(.2,.7,.3,1) forwards}
-@keyframes lineIn{to{opacity:1;transform:none;filter:blur(0)}}
-.fline.dim{opacity:.34;transition:opacity 1.6s ease}
-.fline.key{
-  font-style:italic;font-size:clamp(1.85rem,7vw,3rem);
-  margin-top:.7em;color:var(--gold);letter-spacing:.01em;
-}
-.qed{
-  display:inline-block;margin-left:.4em;font-style:normal;
-  font-size:.62em;color:var(--gold);opacity:0;transition:opacity 1.4s ease 1.2s;
-}
-.qed.show{opacity:.9}
+/* ---------- РАУНД 1 ---------- */
+.q-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; font-family:var(--mono); font-size:.8rem; color:var(--ink-soft); }
+.q-top .q-score{ color:var(--rose-ink); }
+.q-progress{ height:3px; background:var(--blush-2); border-radius:99px; overflow:hidden; margin-bottom:34px; }
+.q-progress i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--rose),var(--rose-deep)); transition:width .5s cubic-bezier(.22,.9,.3,1); }
+.q-text{ font-family:var(--serif); font-size:clamp(1.6rem,3.6vw,2.4rem); font-weight:600; line-height:1.25; min-height:2.6em; }
+.q-hint{ margin-top:14px; color:var(--ink-soft); font-size:.95rem; }
+.q-actions{ margin-top:30px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
 
-/* ─────────────────────────────  КОНВЕРТ  ───────────────────────────── */
-.env-stage{margin-top:52px;opacity:0;transform:translateY(18px);perspective:1100px}
-.env-stage.show{animation:lineIn 1.4s ease forwards}
-.env{
-  position:relative;width:min(320px,78vw);aspect-ratio:1.52;
-  margin:0 auto;cursor:pointer;border:0;padding:0;background:none;
-  transition:transform .5s ease,opacity .7s ease;
-  display:block;
+.video-wrap{ margin-top:28px; }
+.video-frame{
+  position:relative; border-radius:18px; overflow:hidden; background:#0e0b10;
+  box-shadow:var(--shadow); border:1px solid var(--line);
 }
-.env:hover{transform:translateY(-5px)}
-.env-body{
-  position:absolute;inset:0;background:var(--env);border-radius:3px;
-  box-shadow:0 26px 50px -24px rgba(0,0,0,.75);
-  display:grid;place-items:center;
+.video-frame video{ display:block; width:100%; max-height:56vh; background:#0e0b10; }
+.video-label{
+  position:absolute; top:12px; left:12px; z-index:2;
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.12em; text-transform:uppercase;
+  background:rgba(255,247,250,.92); color:var(--rose-ink);
+  padding:5px 12px; border-radius:999px;
 }
-.env-body::after{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:62%;
-  background:linear-gradient(160deg,var(--env-2) 0 50%,transparent 50%),
-             linear-gradient(200deg,var(--env-2) 0 50%,transparent 50%);
-  background-size:50% 100%;background-position:left,right;background-repeat:no-repeat;
-  opacity:.75;
+.video-missing{
+  border:1.5px dashed var(--line-strong); border-radius:18px; padding:26px;
+  font-size:.95rem; color:var(--ink-soft); background:rgba(255,255,255,.6); line-height:1.6;
 }
-.env-word{
-  position:relative;z-index:3;font-family:var(--hand);color:#2A3350;
-  font-size:2.1rem;transform:rotate(-2deg) translateY(14px);
+.video-missing code{ font-family:var(--mono); color:var(--rose-ink); background:var(--blush-2); padding:2px 7px; border-radius:6px; font-size:.85em; }
+
+.verdict{ margin-top:24px; }
+.verdict .v-q{ font-family:var(--mono); font-size:.85rem; color:var(--ink-soft); margin-bottom:14px; }
+.verdict-btns{ display:flex; gap:14px; flex-wrap:wrap; }
+.btn-yes{ border-color:var(--ok); color:var(--ok); }
+.btn-yes:hover{ background:var(--ok); color:#fff; }
+.btn-no{ border-color:var(--rose-deep); color:var(--rose-deep); }
+.btn-no:hover{ background:var(--rose-deep); color:#fff; }
+.quip{
+  margin-top:20px; font-family:var(--mono); font-size:.95rem; color:var(--rose-ink);
+  animation:riseIn .5s ease both;
+}
+
+/* результат раунда */
+.result-wrap{ text-align:center; }
+.big-frac{
+  font-family:var(--serif); font-weight:600; font-size:clamp(3.4rem,9vw,6rem);
+  line-height:1; margin:18px 0 6px;
+}
+.big-frac small{ font-size:.42em; color:var(--ink-soft); font-weight:500; }
+.result-title{ font-family:var(--serif); font-size:clamp(1.5rem,3vw,2.1rem); font-weight:600; margin:22px 0 10px; }
+.result-text{ color:var(--ink-soft); max-width:520px; margin:0 auto 30px; line-height:1.65; }
+
+/* ---------- РАУНД 2 : пазл ---------- */
+.puzzle-layout{ display:flex; flex-direction:column; align-items:center; gap:20px; }
+.puzzle-meta{
+  display:flex; gap:16px; align-items:center; flex-wrap:wrap; justify-content:center;
+  font-family:var(--mono); font-size:.82rem; color:var(--ink-soft);
+}
+.puzzle-meta .pm-count{ color:var(--rose-ink); background:var(--blush-2); border:1px solid var(--line-strong); border-radius:999px; padding:6px 14px; }
+.board{
+  position:relative; width:min(78vmin, 560px); aspect-ratio:1/1;
+  border-radius:16px;
+  background:rgba(255,255,255,.5);
+  box-shadow:var(--shadow);
+  border:1px solid var(--line);
+  transition:box-shadow .8s;
+  touch-action:manipulation;
+}
+.board.solved{ box-shadow:0 20px 60px rgba(199,91,127,.35); }
+.tile{
+  position:absolute; cursor:pointer;
+  background-repeat:no-repeat;
+  border:3px solid var(--paper); border-radius:10px;
+  transition:left .5s cubic-bezier(.22,.9,.3,1), top .5s cubic-bezier(.22,.9,.3,1),
+             border-color .8s, border-radius .8s, box-shadow .25s;
+  overflow:hidden;
+}
+.tile:hover{ box-shadow:inset 0 0 0 2px rgba(199,91,127,.45); }
+.tile.selected{
+  z-index:6; box-shadow:0 0 0 3px var(--rose-deep), 0 10px 24px rgba(199,91,127,.4);
+  border-color:#fff;
+}
+.tile .num{
+  position:absolute; top:4px; left:4px; z-index:2;
+  font-family:var(--mono); font-size:.62rem; font-weight:700;
+  background:rgba(255,247,250,.9); color:var(--rose-ink);
+  min-width:18px; height:18px; padding:0 4px; border-radius:6px;
+  display:grid; place-items:center;
+  transition:opacity .8s;
+}
+.board.solved .tile{ border-color:transparent; border-radius:0; cursor:default; pointer-events:none; }
+.board.solved .tile .num{ opacity:0; }
+.board.solved::after{
+  content:''; position:absolute; inset:-4px; border-radius:18px; pointer-events:none;
+  box-shadow:0 0 0 2px var(--rose), 0 0 60px rgba(226,121,154,.5);
+  animation:glowIn 1.2s ease both;
+}
+@keyframes glowIn{ from{ opacity:0; } to{ opacity:1; } }
+.puzzle-caption{ text-align:center; max-width:620px; }
+.puzzle-caption .serif-line{ margin-bottom:26px; }
+
+/* ---------- РАУНД 3 : аксиомы ---------- */
+.ax-card{
+  text-align:center; max-width:640px; margin:0 auto;
+  perspective:1000px;
+}
+.ax-statement{
+  font-family:var(--serif); font-size:clamp(1.5rem,3.4vw,2.2rem); font-weight:600;
+  line-height:1.3; min-height:3.2em; display:flex; align-items:center; justify-content:center;
+  padding:0 10px;
+}
+.ax-tag{ font-family:var(--mono); font-size:.75rem; letter-spacing:.16em; text-transform:uppercase; color:var(--rose-deep); margin-bottom:16px; }
+.ax-btns{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:30px; }
+.ax-reveal{ margin-top:26px; min-height:70px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+.ax-note{ font-family:var(--mono); font-size:.9rem; color:var(--ink-soft); animation:riseIn .5s ease both; }
+.ax-note.good{ color:var(--ok); }
+
+/* ---------- РАУНД 4 : формула ---------- */
+.task-sheet{ position:relative; }
+.task-head{ display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin-bottom:26px; flex-wrap:wrap; }
+.task-head .th-num{ font-family:var(--mono); font-size:.8rem; letter-spacing:.16em; text-transform:uppercase; color:var(--rose-deep); }
+.given-label{ font-family:var(--mono); font-weight:700; font-size:1rem; color:var(--ink); margin-bottom:6px; }
+.given-a{ font-family:var(--mono); font-size:clamp(1.05rem,2vw,1.25rem); margin-bottom:20px; }
+.given-a b{ color:var(--rose-ink); }
+.given-list{ list-style:none; columns:2; column-gap:34px; }
+.given-list li{
+  break-inside:avoid; display:flex; gap:10px; align-items:baseline;
+  font-size:clamp(.93rem,1.6vw,1.02rem); line-height:1.5; margin:0 0 10px;
+  opacity:0; transform:translateY(8px); transition:opacity .45s ease, transform .45s ease;
+}
+.given-list li.show{ opacity:1; transform:none; }
+.given-list .ck{ color:var(--rose-deep); font-family:var(--mono); font-weight:700; flex:none; }
+@media (max-width:640px){ .given-list{ columns:1; } }
+.eq-line{
+  margin-top:26px; padding:18px 20px; border-top:1px dashed var(--line-strong);
+  font-family:var(--mono); font-size:clamp(.9rem,1.7vw,1.05rem); line-height:1.9; color:var(--rose-ink);
+  word-break:break-word;
+}
+.eq-line sub{ font-size:.68em; }
+.find-line{ margin-top:8px; font-family:var(--mono); font-size:.95rem; }
+.task-actions{ margin-top:26px; display:flex; gap:14px; flex-wrap:wrap; }
+
+.solver{ margin-top:30px; }
+.solver-log{
+  font-family:var(--mono); font-size:.92rem; line-height:2.05; color:var(--ink-soft);
+  border-left:2.5px solid var(--rose); padding:6px 0 6px 20px;
+}
+.solver-log .ln{ opacity:0; transform:translateX(-6px); transition:opacity .4s, transform .4s; display:flex; gap:10px; align-items:baseline; }
+.solver-log .ln.show{ opacity:1; transform:none; }
+.solver-log .ln .dots::after{ content:''; animation:dots 1.1s steps(4) infinite; }
+@keyframes dots{ 0%{content:'';} 25%{content:'.';} 50%{content:'..';} 75%{content:'...';} }
+.solver-log .ln.done .dots::after{ content:' — ok'; animation:none; color:var(--ok); }
+.solve-fail{ margin:30px 0 6px; text-align:center; }
+.after-fail{ margin-top:26px; text-align:center; }
+.after-fail .serif-line{ margin-bottom:10px; }
+
+/* ---------- ФИНАЛ ---------- */
+#s-final{ position:relative; overflow:hidden; }
+.final-stage{ position:relative; text-align:center; min-height:60vh; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.final-lines{ display:flex; flex-direction:column; gap:14px; margin-bottom:10px; }
+.final-lines .fl{ font-family:var(--serif); font-size:clamp(1.25rem,2.6vw,1.7rem); color:var(--ink-soft); font-weight:500; }
+.final-big{
+  font-family:var(--serif); font-weight:600; font-size:clamp(2rem,5.2vw,3.3rem);
+  line-height:1.2; margin-top:26px; color:var(--ink);
+}
+.polaroids{ position:absolute; inset:0; pointer-events:none; z-index:0; }
+.polaroid{
+  position:absolute; width:clamp(130px, 19vw, 230px); padding:8px 8px 26px;
+  background:#fff; border:1px solid var(--line); box-shadow:var(--shadow);
+  opacity:0; transition:opacity 1.4s ease, transform 1.4s ease;
+}
+.polaroid img{ display:block; width:100%; aspect-ratio:4/5; object-fit:cover; background:var(--blush-2); }
+.polaroid.show{ opacity:1; }
+.polaroid.p1{ top:6%; left:2%; transform:rotate(-8deg) translateY(14px); }
+.polaroid.p2{ top:12%; right:3%; transform:rotate(6deg) translateY(14px); }
+.polaroid.p3{ bottom:6%; left:6%; transform:rotate(-4deg) translateY(14px); }
+.polaroid.show.p1{ transform:rotate(-8deg); }
+.polaroid.show.p2{ transform:rotate(6deg); }
+.polaroid.show.p3{ transform:rotate(-4deg); }
+@media (max-width:760px){ .polaroid.p3{ display:none; } .polaroid{ width:120px; } }
+
+/* конверт */
+.env-zone{ margin-top:44px; position:relative; z-index:2; min-height:250px; display:flex; align-items:center; justify-content:center; }
+.envelope{
+  position:relative; width:min(76vw,330px); aspect-ratio:3/2; cursor:pointer;
+  filter:drop-shadow(0 16px 30px rgba(169,74,106,.25));
+  transition:transform .3s ease;
+  opacity:0;
+}
+.envelope.show{ animation:envIn .9s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes envIn{ from{ opacity:0; transform:translateY(40px) scale(.8);} to{ opacity:1; transform:none;} }
+.envelope:hover{ transform:translateY(-4px) rotate(-1deg); }
+.env-back{ position:absolute; inset:0; background:var(--blush); border-radius:10px; }
+.env-letter-peek{
+  position:absolute; left:6%; right:6%; top:6%; bottom:12%;
+  background:#fff; border-radius:6px; border:1px solid var(--line);
+  transition:transform .8s cubic-bezier(.22,.9,.3,1) .45s;
+}
+.env-front{
+  position:absolute; inset:0; border-radius:10px;
+  background:linear-gradient(160deg, var(--blush-2), var(--blush));
+  clip-path:polygon(0 28%, 50% 62%, 100% 28%, 100% 100%, 0 100%);
 }
 .env-flap{
-  position:absolute;left:0;right:0;top:0;height:56%;
-  background:var(--env-2);
-  clip-path:polygon(0 0,100% 0,50% 100%);
-  transform-origin:top center;backface-visibility:hidden;
-  transition:transform .9s cubic-bezier(.5,-0.2,.3,1.2);
-  z-index:4;
+  position:absolute; inset:0 0 auto 0; height:60%;
+  background:linear-gradient(200deg, #F9DCE7, var(--blush));
+  clip-path:polygon(0 0, 100% 0, 50% 100%);
+  border-radius:10px 10px 0 0;
+  transform-origin:top center;
+  transition:transform .7s cubic-bezier(.22,.9,.3,1);
+  z-index:3;
 }
-.seal{
-  position:absolute;left:50%;top:47%;z-index:5;
-  width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#B04039,var(--wax) 70%);
-  color:#F6E3D8;display:grid;place-items:center;font-size:19px;
-  box-shadow:0 4px 12px -3px rgba(0,0,0,.5);
-  transition:opacity .5s ease,transform .5s ease;
+.env-seal{
+  position:absolute; left:50%; top:52%; transform:translate(-50%,-50%);
+  width:52px; height:52px; border-radius:50%; z-index:4;
+  background:radial-gradient(circle at 35% 30%, var(--rose), var(--rose-deep));
+  color:#fff; display:grid; place-items:center;
+  font-family:var(--serif); font-size:1.4rem;
+  box-shadow:0 4px 12px rgba(169,74,106,.45);
+  transition:opacity .4s, transform .4s;
 }
-.env.open .env-flap{transform:rotateX(178deg)}
-.env.open .seal{opacity:0;transform:scale(.6) translateY(16px)}
-.env.gone{opacity:0;transform:translateY(-18px) scale(.94)}
+.env-word{
+  position:absolute; left:50%; bottom:10%; transform:translateX(-50%); z-index:5;
+  font-family:var(--mono); font-size:.78rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--rose-ink);
+}
+.envelope.open .env-flap{ transform:rotateX(180deg); z-index:1; }
+.envelope.open .env-seal{ opacity:0; transform:translate(-50%,-50%) scale(.4); }
+.envelope.open .env-letter-peek{ transform:translateY(-34%); }
+.envelope.gone{ opacity:0; transition:opacity .6s ease; pointer-events:none; }
 
-/* ─────────────────────────────  ПИСЬМО  ───────────────────────────── */
 .letter{
-  max-width:520px;margin:0 auto;padding:clamp(34px,7vw,54px) clamp(26px,6vw,48px);
-  background:linear-gradient(#FBF6EC,#F4EDDF);
-  color:#25304C;border-radius:2px;
-  box-shadow:0 34px 60px -30px rgba(0,0,0,.8);
-  text-align:left;
+  position:relative; z-index:3; max-width:560px; margin:0 auto;
+  background:#fff; border:1px solid var(--line); border-radius:18px;
+  box-shadow:0 24px 60px rgba(169,74,106,.28);
+  padding:clamp(28px,5vw,48px); text-align:center; display:none;
 }
-.letter p{
-  font-family:var(--hand);font-size:clamp(1.6rem,5.6vw,2.1rem);
-  line-height:1.35;margin:0 0 .6em;
-  opacity:0;transform:translateY(10px);
+.letter.show{ display:block; animation:letterIn 1s cubic-bezier(.2,1.2,.35,1) both; }
+@keyframes letterIn{ from{ opacity:0; transform:translateY(46px) scale(.92);} to{ opacity:1; transform:none;} }
+.letter .l-line{
+  font-family:var(--serif); font-size:clamp(1.25rem,2.7vw,1.7rem); line-height:1.5; font-weight:500;
+  opacity:0; transform:translateY(8px); transition:opacity .7s ease, transform .7s ease; margin:8px 0;
 }
-.letter p.show{animation:lineIn 1.2s ease forwards}
-.letter .sign{
-  font-family:var(--hand);font-size:1.5rem;color:var(--wax);
-  text-align:right;margin-top:.9em;opacity:0;
-}
-.letter .sign.show{animation:lineIn 1.2s ease forwards}
+.letter .l-line.show{ opacity:1; transform:none; }
+.letter .l-love{ color:var(--rose-deep); font-weight:600; font-size:clamp(1.5rem,3.2vw,2rem); margin-top:16px; }
+.letter .l-sign{ font-family:var(--serif); font-style:italic; font-size:1.15rem; color:var(--ink-soft); margin-top:22px; }
+.letter .l-eq{ font-family:var(--mono); font-size:.85rem; color:var(--rose-ink); margin-top:26px; letter-spacing:.08em; }
 
-/* ─────────────────────────────  ПРОЧЕЕ  ───────────────────────────── */
-.hint{font-size:.72rem;letter-spacing:.1em;color:var(--fg-soft);margin-top:20px;opacity:.7}
+/* конфетти */
+.confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:40; overflow:hidden; }
+.cf{
+  position:absolute; top:-6vh; font-family:var(--mono); user-select:none;
+  animation-name:cfFall; animation-timing-function:linear; animation-fill-mode:forwards;
+}
+@keyframes cfFall{
+  0%{ transform:translateY(0) rotate(0deg); opacity:0; }
+  8%{ opacity:1; }
+  100%{ transform:translateY(112vh) rotate(340deg); opacity:.9; }
+}
 
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.15s !important}
-  .fline,.letter p,.letter .sign{opacity:1;transform:none;filter:none}
+/* ---------- SETUP-режим пазла ---------- */
+.setup-wrap{ max-width:900px; }
+.setup-grid-note{ font-size:.92rem; color:var(--ink-soft); line-height:1.6; margin:14px 0 22px; }
+.setup-board{ position:relative; width:min(80vmin,520px); aspect-ratio:1/1; margin:0 auto 22px; border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
+.setup-tile{ position:absolute; cursor:pointer; border:1px solid rgba(255,255,255,.6); }
+.setup-tile .sn{
+  position:absolute; inset:auto auto 3px 4px; font-family:var(--mono); font-size:.62rem;
+  color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.6);
+}
+.setup-tile.groom::after{
+  content:'♥'; position:absolute; inset:0; display:grid; place-items:center;
+  background:rgba(199,91,127,.5); color:#fff; font-size:1.1rem;
+}
+.setup-out{
+  font-family:var(--mono); font-size:.8rem; background:#fff; border:1px solid var(--line);
+  border-radius:12px; padding:16px; white-space:pre-wrap; word-break:break-all; color:var(--rose-ink);
+}
+.setup-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:18px; font-size:.92rem; }
+.setup-row select{
+  font-family:var(--mono); padding:8px 12px; border-radius:10px; border:1.5px solid var(--line-strong);
+  background:#fff; color:var(--ink); font-size:.9rem;
+}
+
+/* ---------- предзагрузка материалов ---------- */
+.load-wrap{ width:min(760px,100%); }
+.load-eyebrow{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--rose-ink); margin-bottom:14px;
+}
+.load-title{ font-family:var(--serif); font-weight:600; font-size:clamp(1.7rem,4.2vw,2.6rem); margin-bottom:6px; }
+.load-sub{ color:var(--ink-soft); font-size:.95rem; margin-bottom:26px; }
+.load-counter{
+  font-family:var(--serif); font-size:clamp(2.4rem,7vw,4rem); line-height:1;
+  margin-bottom:14px; font-variant-numeric:tabular-nums;
+}
+.load-counter .of{ color:var(--rose-deep); }
+.load-counter .tick{ color:var(--ok); margin-left:.35em; opacity:0; transition:opacity .4s ease; }
+.load-counter.done .tick{ opacity:1; }
+.load-bar{
+  height:10px; background:#fff; border:1.5px solid var(--line-strong);
+  border-radius:999px; overflow:hidden;
+}
+.load-bar i{
+  display:block; height:100%; width:0%;
+  background:linear-gradient(90deg, var(--rose), var(--rose-deep));
+  transition:width .25s ease;
+}
+.load-bytes{ font-family:var(--mono); font-size:.78rem; color:var(--ink-soft); margin-top:8px; min-height:1.2em; }
+.load-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+.lchip{
+  font-family:var(--mono); font-size:.72rem; padding:5px 11px; border-radius:999px;
+  border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+  transition:all .25s ease;
+}
+.lchip.loading{ border-color:var(--rose); color:var(--rose-ink); animation:chipPulse 1.1s ease-in-out infinite; }
+.lchip.done{ border-color:var(--rose-deep); color:var(--rose-ink); background:var(--blush-2); }
+.lchip.done::before{ content:'✓ '; color:var(--ok); }
+.lchip.err, .lchip.miss{ border-color:#d08a8a; color:#a33d3d; background:#fdf1f1; }
+.lchip.err::before{ content:'✘ '; }
+.lchip.miss::before{ content:'? '; }
+@keyframes chipPulse{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
+.load-err{
+  font-family:var(--mono); font-size:.78rem; color:#a33d3d; background:#fdf1f1;
+  border:1px solid #eccaca; border-radius:12px; padding:12px 16px;
+  margin-top:20px; white-space:pre-wrap; text-align:left;
+}
+.load-form{
+  margin-top:24px; text-align:left; background:var(--card); border:1px solid var(--line);
+  border-radius:16px; padding:20px 22px; box-shadow:var(--shadow);
+}
+.load-form .lf-title{ font-weight:700; font-size:.95rem; margin-bottom:8px; }
+.load-form .lf-hint{ font-size:.84rem; color:var(--ink-soft); line-height:1.55; margin-bottom:14px; }
+.load-form .lf-hint code{ font-family:var(--mono); font-size:.78rem; color:var(--rose-ink); }
+.key-input{
+  width:100%; font-family:var(--mono); font-size:.85rem; padding:10px 14px;
+  border:1.5px solid var(--line-strong); border-radius:10px; background:#fff; color:var(--ink);
+  margin-bottom:12px;
+}
+.key-input:focus{ outline:none; border-color:var(--rose-deep); }
+.load-actions{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:22px; }
+
+/* ---------- прочее ---------- */
+.center{ text-align:center; }
+.mt-lg{ margin-top:34px; }
+.hidden{ display:none !important; }
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
 }
 </style>
 </head>
 <body>
+<!-- декоративная математика на полях -->
+<div class="math-decor" aria-hidden="true">
+  <span class="d1">∫₀^∞ love dt</span>
+  <span class="d2">a² + b² = c²</span>
+  <span class="d3">lim x→♡</span>
+  <span class="d4">∑</span>
+  <span class="d5">P(да) = 1</span>
+  <span class="d6">√2 ≈ 1.414…</span>
+  <svg style="top:30%; left:44%; width:280px;" viewBox="0 0 280 120" fill="none">
+    <path d="M6 110 C 60 10, 140 10, 168 60 S 250 116, 274 30" stroke="#C75B7F" stroke-width="1.4" stroke-dasharray="5 6"/>
+    <path d="M6 110 H 274 M6 110 V 8" stroke="#C75B7F" stroke-width="1"/>
+  </svg>
+</div>
 
-<div id="grid"></div>
-<div id="photos"></div>
-<div id="veil"></div>
+<header>
+  <div class="brand"><b>𝑓(Анна)</b> = ?&nbsp;&nbsp;·&nbsp;&nbsp;Формула Анны</div>
+  <nav class="steps" id="steps" aria-label="Прогресс">
+    <span class="st" data-step="0" title="Пролог">§0</span>
+    <span class="st" data-step="1" title="Раунд 1">I</span>
+    <span class="st" data-step="2" title="Раунд 2">II</span>
+    <span class="st" data-step="3" title="Раунд 3">III</span>
+    <span class="st" data-step="4" title="Раунд 4">IV</span>
+    <span class="st" data-step="5" title="Финал">∞</span>
+  </nav>
+  <div class="hdr-right">
+    <span class="chip" id="chip"></span>
+    <button class="icon-btn" id="btnFS" title="Во весь экран" aria-label="Во весь экран">⛶</button>
+  </div>
+</header>
 
 <main>
 
-  <!-- ①  ОБЛОЖКА -->
-  <section class="screen on" id="s-cover">
-    <div class="wrap">
-      <div class="eyebrow">Задача № 1 · без черновика</div>
-      <h1 class="hand-title">Теорема<br>об Анне</h1>
-      <div class="given">
-        <div><b>Дано:</b> Анна.</div>
-        <div><b>Доказать:</b> что Аню можно описать набором качеств.</div>
-      </div>
-      <div class="margin-note">попыток: ∞<br>время: не ограничено</div>
-      <div class="btn-row" style="margin-top:0">
-        <button class="btn" data-go="s-quiz">Приступить к решению</button>
-      </div>
-    </div>
-  </section>
+<!-- ================= ПРЕДЗАГРУЗКА МАТЕРИАЛОВ ================= -->
+<section class="screen" id="s-load">
+  <div class="stage narrow load-wrap center">
+    <div class="load-eyebrow">подготовка исследования</div>
+    <div class="load-title">Загружаем материалы</div>
+    <p class="load-sub">Видео и фотографии подтягиваются из папки Google&nbsp;Диска в память —
+      чтобы во время квиза всё открывалось мгновенно.</p>
 
-  <!-- ②  ВИКТОРИНА -->
-  <section class="screen" id="s-quiz">
-    <div class="wrap">
-      <div class="q-head">Часть первая</div>
-      <h2 class="q-title">Отметьте все верные варианты</h2>
-      <ul class="opts" id="opts"></ul>
-      <div class="btn-row">
-        <button class="btn" id="submit" disabled>Проверить решение</button>
-        <span class="counter" id="counter">выбрано 0 из 10</span>
+    <div class="load-counter" id="ldCounter">
+      <span id="ldDone">0</span> <span class="of">/ <span id="ldTotal">0</span></span><span class="tick">✓</span>
+    </div>
+    <div class="load-bar"><i id="ldBarFill"></i></div>
+    <div class="load-bytes" id="ldBytes"></div>
+
+    <div class="load-chips" id="ldChips"></div>
+    <div class="load-err hidden" id="ldErr"></div>
+
+    <div class="load-form hidden" id="ldKeyForm">
+      <div class="lf-title">Нужен API-ключ Google (бесплатный)</div>
+      <div class="lf-hint">
+        Браузер не может скачивать файлы с Google Диска напрямую — Google отдаёт их только через
+        своё API. Ключ делается за пару минут: <code>console.cloud.google.com</code> →
+        создать проект → <code>APIs&nbsp;&amp;&nbsp;Services&nbsp;→&nbsp;Library</code> → включить
+        <b>Google Drive API</b> → <code>Credentials&nbsp;→&nbsp;Create&nbsp;credentials&nbsp;→&nbsp;API&nbsp;key</code>.
+        Затем впишите его в <code>CONFIG.drive.apiKey</code> в начале скрипта этого файла —
+        или вставьте сюда, чтобы проверить прямо сейчас.
+      </div>
+      <input class="key-input" id="ldKey" type="text" spellcheck="false"
+             placeholder="AIza…  — API-ключ с доступом к Google Drive API" autocomplete="off">
+      <button class="btn btn-primary" id="btnLdGo">Загрузить материалы</button>
+    </div>
+
+    <div class="load-actions">
+      <button class="btn btn-primary hidden" id="btnLdRetry">Повторить загрузку</button>
+      <button class="btn btn-ghost hidden" id="btnLdSkip">Продолжить без материалов</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ВСТУПЛЕНИЕ ================= -->
+<section class="screen" id="s-intro">
+  <div class="stage narrow" data-skippable>
+    <div class="intro-hello tw" id="introHello"></div>
+    <p class="intro-sub tw" id="introSub1"></p>
+    <p class="intro-sub tw" id="introSub2" style="margin-top:8px;"></p>
+
+    <div class="data-block hidden" id="introData">
+      <div class="dt">Исходные данные</div>
+      <div id="introDataLines"></div>
+    </div>
+
+    <div class="intro-tail tw" id="introTail"></div>
+
+    <div class="intro-actions hidden" id="introActions">
+      <button class="btn btn-primary" id="btnStart">Начать исследование</button>
+      <div class="skip-hint">Подсказка: клик по тексту ускоряет печать ▸</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= РАУНД 1 : заставка ================= -->
+<section class="screen" id="s-r1i">
+  <div class="stage round-cover" data-skippable>
+    <div class="rc-num">Раунд I · Теория Артёма</div>
+    <h2>Насколько хорошо ты знаешь Артёма?</h2>
+    <p class="lead tw" id="r1iLead"></p>
+    <div class="hidden" id="r1iActions">
+      <button class="btn btn-primary" id="btnR1Start">К первому вопросу</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= РАУНД 1 : вопросы ================= -->
+<section class="screen" id="s-r1">
+  <div class="stage narrow">
+    <div class="q-top">
+      <span id="r1Counter">Вопрос 1 / 13</span>
+      <span class="q-score" id="r1ScoreTop">совпадений: 0</span>
+    </div>
+    <div class="q-progress"><i id="r1Bar"></i></div>
+
+    <div class="q-text tw" id="r1Q" data-skippable></div>
+    <p class="q-hint" id="r1Hint">Анна отвечает вслух — а потом сверяем с первоисточником.</p>
+
+    <div class="q-actions" id="r1Actions">
+      <button class="btn btn-primary" id="btnShowAnswer">▶&nbsp;Ответ Артёма</button>
+    </div>
+
+    <div class="video-wrap hidden" id="r1Media"></div>
+
+    <div class="verdict hidden" id="r1Verdict">
+      <div class="v-q">// сверка показаний</div>
+      <div class="verdict-btns">
+        <button class="btn btn-yes" id="btnYes">✔&nbsp;Сошлось</button>
+        <button class="btn btn-no" id="btnNo">✘&nbsp;Не совсем</button>
       </div>
     </div>
-  </section>
 
-  <!-- ③  ПРОВЕРКА -->
-  <section class="screen" id="s-check">
-    <div class="wrap">
-      <div class="eyebrow" style="margin-bottom:22px">Проверка решения</div>
-      <div style="position:relative">
-        <ul class="answers-mini" id="mini"></ul>
-        <svg id="strike" preserveAspectRatio="none" viewBox="0 0 100 100">
-          <path d="M1 26 C 32 18, 68 34, 99 24" vector-effect="non-scaling-stroke"/>
-          <path d="M2 62 C 34 72, 66 54, 98 66" vector-effect="non-scaling-stroke"/>
-        </svg>
+    <div class="quip hidden" id="r1Quip"></div>
+  </div>
+</section>
+
+<!-- ================= РАУНД 1 : результат ================= -->
+<section class="screen" id="s-r1res">
+  <div class="stage narrow result-wrap">
+    <div class="eyebrow" style="justify-content:center;">Итог раунда I</div>
+    <div class="big-frac"><span id="r1ResNum">0</span><small> / <span id="r1ResDen">13</span></small></div>
+    <div class="mono" style="color:var(--ink-soft); font-size:.85rem;" id="r1ResPct"></div>
+    <div style="margin:26px 0;"><span class="stamp" id="r1Stamp">доказано</span></div>
+    <div class="result-title" id="r1ResTitle"></div>
+    <p class="result-text" id="r1ResText"></p>
+    <button class="btn btn-primary" id="btnToR2">Дальше — раунд II</button>
+  </div>
+</section>
+
+<!-- ================= РАУНД 2 : заставка ================= -->
+<section class="screen" id="s-r2i">
+  <div class="stage round-cover" data-skippable>
+    <div class="rc-num">Раунд II · Геометрия</div>
+    <h2>Собери жениха</h2>
+    <p class="lead tw" id="r2iLead"></p>
+    <div class="hidden" id="r2iActions">
+      <button class="btn btn-primary" id="btnR2Start">К пазлу</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= РАУНД 2 : пазл ================= -->
+<section class="screen" id="s-r2">
+  <div class="stage">
+    <div class="puzzle-layout" id="puzzleLayout">
+      <div class="puzzle-meta">
+        <span>клик — выбрать · второй клик — поменять местами</span>
+        <span class="pm-count" id="r2Prog">|Артём| = 0 / 0</span>
+        <button class="btn btn-ghost btn-sm" id="btnShuffle">перемешать заново</button>
       </div>
-      <div class="logs" id="logs"></div>
-      <div class="bar"><i id="bar"></i></div>
-    </div>
-  </section>
-
-  <!-- ④  РЕЗУЛЬТАТ -->
-  <section class="screen" id="s-result">
-    <div class="wrap">
-      <h2 class="verdict">Решение<br>не найдено.</h2>
-      <p class="verdict-sub">Аню невозможно описать набором качеств.</p>
-      <p class="verdict-sub" style="color:var(--fg-soft)">Эта задача не имеет решения.</p>
-      <div class="because">Потому что</div>
-      <div id="media-slot"></div>
-      <div class="btn-row" style="justify-content:center">
-        <button class="btn" id="to-final">Дальше</button>
+      <div class="board" id="board" aria-label="Пазл"></div>
+      <div class="puzzle-caption hidden" id="r2Done">
+        <div class="serif-line tw" id="r2Quote"></div>
+        <button class="btn btn-primary hidden" id="btnToR3">Дальше — раунд III</button>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ⑤  ФИНАЛ -->
-  <section class="screen" id="s-final">
-    <div class="wrap">
-      <div id="flines"></div>
-      <div class="env-stage" id="env-stage">
-        <button class="env" id="env" aria-label="Открыть письмо">
-          <div class="env-body"><span class="env-word">Открыть</span></div>
-          <div class="env-flap"></div>
-          <div class="seal">♥</div>
-        </button>
+<!-- ================= РАУНД 3 : заставка ================= -->
+<section class="screen" id="s-r3i">
+  <div class="stage round-cover" data-skippable>
+    <div class="rc-num">Раунд III · Основания теории</div>
+    <h2>Аксиомы мужа</h2>
+    <p class="lead tw" id="r3iLead"></p>
+    <div class="hidden" id="r3iActions">
+      <button class="btn btn-primary" id="btnR3Start">Проверить аксиоматику</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= РАУНД 3 : карточки ================= -->
+<section class="screen" id="s-r3">
+  <div class="stage narrow">
+    <div class="q-top">
+      <span id="r3Counter">Утверждение 1 / 16</span>
+      <span class="q-score" id="r3ScoreTop">верно: 0</span>
+    </div>
+    <div class="q-progress"><i id="r3Bar"></i></div>
+
+    <div class="ax-card card paper-corner">
+      <div class="ax-tag">Утверждение об Артёме</div>
+      <div class="ax-statement" id="r3Statement"></div>
+      <div class="ax-btns" id="r3Btns">
+        <button class="btn btn-yes" id="btnAxTrue">✔&nbsp;Аксиома — истина</button>
+        <button class="btn btn-no" id="btnAxFalse">✘&nbsp;Ложь — есть контрпример</button>
+      </div>
+      <div class="ax-reveal" id="r3Reveal"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= РАУНД 3 : результат ================= -->
+<section class="screen" id="s-r3res">
+  <div class="stage narrow result-wrap">
+    <div class="eyebrow" style="justify-content:center;">Итог раунда III</div>
+    <div class="big-frac"><span id="r3ResNum">0</span><small> / <span id="r3ResDen">16</span></small></div>
+    <div class="mono" style="color:var(--ink-soft); font-size:.85rem;" id="r3ResPct"></div>
+    <div style="margin:26px 0;"><span class="stamp" id="r3Stamp">зачёт</span></div>
+    <div class="result-title" id="r3ResTitle"></div>
+    <p class="result-text" id="r3ResText"></p>
+    <button class="btn btn-primary" id="btnToR4">Дальше — главная задача</button>
+  </div>
+</section>
+
+<!-- ================= РАУНД 4 : формула Анны ================= -->
+<section class="screen" id="s-r4">
+  <div class="stage">
+    <div class="card paper-corner task-sheet">
+      <div class="task-head">
+        <span class="th-num">Задача № 5 · повышенной сложности</span>
+        <span class="mono" style="font-size:.75rem; color:var(--ink-soft);">время на решение: вся жизнь</span>
+      </div>
+      <div class="given-label">Дано:</div>
+      <div class="given-a">A — <b>Анна</b></div>
+      <ul class="given-list" id="r4List"></ul>
+      <div class="eq-line" id="r4Eq"></div>
+      <div class="find-line hidden" id="r4Find">Найти: чему равна A?</div>
+      <div class="task-actions">
+        <button class="btn btn-ghost btn-sm hidden" id="btnR4SkipAnim">⏩ показать всё сразу</button>
+        <button class="btn btn-primary hidden" id="btnSolve">Найти решение</button>
+      </div>
+
+      <div class="solver hidden" id="solver">
+        <div class="solver-log" id="solverLog"></div>
+        <div class="solve-fail hidden" id="solveFail">
+          <span class="stamp">решение не найдено</span>
+        </div>
+        <div class="after-fail hidden" id="afterFail">
+          <div class="serif-line tw" id="afterLine1"></div>
+          <div class="serif-line tw" id="afterLine2"></div>
+          <div class="serif-line tw" id="afterLine3" style="color:var(--rose-deep);"></div>
+          <div class="video-wrap hidden" id="r4Media" style="text-align:left;"></div>
+          <button class="btn btn-primary hidden mt-lg" id="btnToFinal">К финалу&nbsp;→&nbsp;∞</button>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ⑥  ПИСЬМО -->
-  <section class="screen" id="s-letter">
-    <div class="wrap" style="max-width:560px">
-      <div class="letter" id="letter"></div>
+<!-- ================= ФИНАЛ ================= -->
+<section class="screen" id="s-final">
+  <div class="polaroids" id="polaroids">
+    <figure class="polaroid p1"><img data-photo="0" alt=""></figure>
+    <figure class="polaroid p2"><img data-photo="1" alt=""></figure>
+    <figure class="polaroid p3"><img data-photo="2" alt=""></figure>
+  </div>
+  <div class="stage final-stage" data-skippable>
+    <div class="final-lines" id="finLines"></div>
+    <div class="final-big tw" id="finBig"></div>
+
+    <div class="env-zone hidden" id="envZone">
+      <div class="envelope" id="envelope" role="button" tabindex="0" aria-label="Открыть письмо">
+        <div class="env-back"></div>
+        <div class="env-letter-peek"></div>
+        <div class="env-front"></div>
+        <div class="env-flap"></div>
+        <div class="env-seal">∞</div>
+        <div class="env-word">Открыть</div>
+      </div>
     </div>
-  </section>
+
+    <div class="letter" id="letter">
+      <div class="l-line">Спасибо, что сказала «Да».</div>
+      <div class="l-line">Скоро увидимся уже в новом статусе.</div>
+      <div class="l-line l-love">Я тебя люблю.</div>
+      <div class="l-sign">— Артём</div>
+      <div class="l-eq">Анна + Артём = ∞</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SETUP-РЕЖИМ (index.html?setup) ================= -->
+<section class="screen" id="s-setup">
+  <div class="stage setup-wrap">
+    <div class="eyebrow">Служебный режим · разметка пазла</div>
+    <h2 style="font-size:clamp(1.4rem,3vw,2rem);">Отметь фрагменты, где виден жених</h2>
+    <p class="setup-grid-note">
+      Кликай по плиткам с Артёмом — они подсветятся ♥. Ниже соберётся готовый фрагмент конфигурации:
+      скопируй его и вставь в <span class="mono">CONFIG.puzzle</span> в начале скрипта этого файла.
+      Обычный квиз открывается по адресу без <span class="mono">?setup</span>.
+    </p>
+    <div class="setup-row">
+      <label for="setupGrid">Сетка:</label>
+      <select id="setupGrid">
+        <option value="5">5 × 5 (25 фрагментов)</option>
+        <option value="6">6 × 6 (36 фрагментов)</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" id="btnSetupClear">сбросить</button>
+      <button class="btn btn-sm" id="btnSetupCopy">скопировать конфиг</button>
+    </div>
+    <div class="setup-board" id="setupBoard"></div>
+    <pre class="setup-out" id="setupOut"></pre>
+  </div>
+</section>
 
 </main>
 
+<div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+
+<noscript><p style="padding:100px 30px; text-align:center; font-family:sans-serif;">Для квиза нужен включённый JavaScript.</p></noscript>
+
 <script>
+(() => {
+'use strict';
+
 /* ══════════════════════════════════════════════════════════════
-   НАСТРОЙКИ — правится только этот блок
+   КОНФИГУРАЦИЯ — всё, что нужно править, находится здесь.
    ══════════════════════════════════════════════════════════════ */
 const CONFIG = {
-  // Видео жениха. Положить файл в папку media/ рядом с index.html.
-  video:  'media/groom.mp4',
-  poster: 'media/groom-poster.jpg',
-  // Если видео нет или не загрузилось — покажется эта фраза.
-  quote:  'Люблю всё. Потому что солнышко моё.',
-  caption:'Сообщение от жениха',
+  bride: 'Анна',
+  groom: 'Артём',
 
-  // Фотографии пары для финала. Лишние строки можно удалить.
-  photos: [
-    'media/photo-1.jpg','media/photo-2.jpg','media/photo-3.jpg',
-    'media/photo-4.jpg','media/photo-5.jpg','media/photo-6.jpg'
+  media: {
+    // Имена файлов В ПАПКЕ GOOGLE ДИСКА (см. drive ниже).
+    // Видео-ответы раунда 1: r1v1, r1v2, … Расширение любое из списка —
+    // при предзагрузке из папки берётся лучший вариант (mp4 приоритетнее).
+    round1Prefix: 'r1v',
+    videoExts: ['mov', 'mp4', 'MOV', 'webm'],
+    puzzleImage: 'r2.jpg',       // совместное фото пары для раунда 2
+    round4Video: 'r4',           // видео «люблю всё, потому что солнышко моё»
+    finalPhotos: ['final1.jpg', 'final2.jpg', 'final3.jpg'],
+  },
+
+  // Материалы лежат не в репозитории, а в папке Google Диска
+  // с доступом «всем, у кого есть ссылка». Имена файлов — те же самые.
+  drive: {
+    folderId: '1_JGhHkPpmnuVNXXa68iSGOm4NOc5c0I7',
+    // API-ключ Google с включённым Google Drive API (бесплатно, только чтение
+    // публичной папки). Без него браузер не может скачать файлы: Drive не
+    // отдаёт их напрямую из-за CORS. Как получить — подсказка на экране
+    // загрузки. Рекомендую в консоли ограничить ключ доменом сайта.
+    apiKey: 'AIzaSyAb08tekfwm1lMlJdo4FfK_F0mDIFUQKC8',
+  },
+
+  puzzle: {
+    grid: 5,                     // 5 → 25 фрагментов, 6 → 36
+    // Индексы фрагментов (0…24 при сетке 5), где на фото виден жених.
+    // ВАЖНО: после загрузки r2.jpg откройте index.html?setup,
+    // отметьте плитки кликами и вставьте сюда полученный массив.
+    // По умолчанию — правые две колонки (жених стоит справа).
+    groomTiles: [3, 4, 8, 9, 13, 14, 18, 19, 23, 24],
+  },
+
+  round1Questions: [
+    'Какой знак зодиака у твоего жениха?',
+    'Какого цвета у него глаза?',
+    'Его любимый цвет?',
+    'Как зовут его папу? Имя и отчество.',
+    'Его любимая музыкальная группа?',
+    'Где прошло ваше первое свидание?',
+    'Его любимая настольная игра?',
+    'Какой у жениха размер одежды и обуви?',
+    'Под каким именем или прозвищем ты записана у него в телефоне?',
+    'Какую суперспособность Артём хотел бы иметь?',
+    'Кем он хотел стать в детстве?',
+    'Как чаще всего ты называешь жениха?',
+    'Если бы ему предложили выбрать страну для постоянного проживания — где бы он захотел жить?',
   ],
 
-  letter: [
-    'Спасибо, что сказала «Да».',
-    'Скоро увидимся уже в новом статусе.',
-    'Я тебя люблю.'
+  // Раунд 3. a: true — аксиома (истина), a: false — ложь.
+  // Последние три добавлены для количества — поправьте под реального Артёма!
+  axioms: [
+    { t: 'Никогда не ломал себе кости',                          a: true  },
+    { t: 'Боится пауков',                                        a: false },
+    { t: 'Один раз опоздал на самолёт',                          a: false },
+    { t: 'Терпеть не может крабовые чипсы',                      a: true  },
+    { t: 'Может съесть целую пиццу в одиночку',                  a: false },
+    { t: 'Ни разу не получал штрафов',                           a: false },
+    { t: 'Умеет жонглировать',                                   a: false },
+    { t: 'Всегда ставит несколько будильников',                  a: true  },
+    { t: 'Выигрывал школьные олимпиады',                         a: true  },
+    { t: 'Был старостой класса',                                 a: false },
+    { t: 'Не может уснуть без одеяла',                           a: true  },
+    { t: 'Всегда выбирает одно и то же блюдо в любимом ресторане', a: true },
+    { t: 'Любит пересматривать одни и те же фильмы',             a: true  },
+    { t: 'Прыгал с парашютом',                                   a: false },
+    { t: 'Свободно говорит по-испански',                         a: false },
+    { t: 'Однажды победил в конкурсе караоке',                   a: false },
   ],
-  signature: '',            // имя жениха под письмом; оставить '' — не показывать
 
-  options: [
+  // Раунд 4 — все утверждения истинны и подставляются в формулу.
+  qualities: [
+    'человек, который всегда найдёт решение',
+    'человек, рядом с которым спокойно',
+    'лучший собеседник',
+    'самый красивый смех',
+    'невероятное терпение',
+    'умеет превращать сложное в простое',
+    'умеет поддержать одним взглядом',
+    'умеет слушать и слышать',
     'человек, которому можно доверить всё',
     'всегда найдёт нужные слова',
     'заряжает своей улыбкой',
@@ -447,244 +998,1287 @@ const CONFIG = {
     'самая надёжная подруга',
     'сочетает силу и нежность',
     'умеет любить всем сердцем',
-    'всегда готова прийти на помощь'
+    'всегда готова прийти на помощь',
   ],
-
-  steps: ['Проверка', 'Поиск решения', 'Сравнение'],
-
-  finale: [
-    'Ты привыкла искать правильные ответы.',
-    'Доказывать теоремы.',
-    'Решать задачи.',
-    'Но некоторые вещи невозможно доказать.'
-  ],
-  finaleKey: 'Любовь не нуждается в доказательствах.',
-
-  timing: {
-    step:        1700,   // длительность одного шага проверки
-    strikeHold:  1600,   // пауза после перечёркивания
-    line:        2500,   // интервал между строками финала
-    pause:       3400,   // пауза перед главной строкой
-    keyDelay:    2400,   // задержка перед «Любовь не нуждается…»
-    envDelay:    3200,   // задержка перед конвертом
-    photoEvery:  6000    // смена фото на фоне
-  }
 };
-/* ═════════════════════════════════════════════════════════════ */
 
-const $  = (s,r=document)=>r.querySelector(s);
-const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
-const wait = ms => new Promise(r=>setTimeout(r,ms));
+/* ══════════════════════════════════════════════════════════════
+   Утилиты
+   ══════════════════════════════════════════════════════════════ */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const shuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const plural = (n, one, few, many) => {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+};
 
-/* ── навигация ─────────────────────────────────────────────── */
-function show(id){
-  $$('.screen').forEach(s=>s.classList.remove('on'));
-  $('#'+id).classList.add('on');
-  window.scrollTo(0,0);
+/* --- печатная машинка с перемоткой -------------------------- */
+// seq.ff = true → все typeLine внутри последовательности печатают мгновенно.
+function makeSeq(container) {
+  const seq = { ff: false };
+  if (container) {
+    container.addEventListener('click', () => { seq.ff = true; }, { passive: true });
+  }
+  return seq;
 }
-$$('[data-go]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.go)));
 
-/* ── ② варианты ────────────────────────────────────────────── */
-const optsEl = $('#opts');
-CONFIG.options.forEach((t,i)=>{
-  const li = document.createElement('li');
-  li.innerHTML =
-    '<label class="opt">' +
-      '<input type="checkbox" value="'+i+'">' +
-      '<span class="box"><svg viewBox="0 0 24 24"><path d="M4 12.5 L9.5 18.5 L20 5.5"/></svg></span>' +
-      '<span class="txt"></span>' +
-    '</label>';
-  li.querySelector('.txt').textContent = t;
-  optsEl.appendChild(li);
+async function typeLine(el, text, { speed = 30, seq = null } = {}) {
+  el.classList.add('typing');
+  el.textContent = '';
+  for (let i = 1; i <= text.length; i++) {
+    if (seq && seq.ff) { el.textContent = text; break; }
+    el.textContent = text.slice(0, i);
+    await sleep(speed);
+  }
+  el.textContent = text;
+  el.classList.remove('typing');
+}
+
+async function pause(ms, seq = null) {
+  const step = 60;
+  let left = ms;
+  while (left > 0) {
+    if (seq && seq.ff) return;
+    await sleep(Math.min(step, left));
+    left -= step;
+  }
+}
+
+/* --- экраны и шапка ----------------------------------------- */
+const chip = $('#chip');
+function setChip(text) {
+  if (!text) { chip.classList.remove('show'); chip.textContent = ''; return; }
+  chip.textContent = text;
+  chip.classList.add('show');
+}
+function setStep(n) {
+  $$('#steps .st').forEach(st => {
+    const s = +st.dataset.step;
+    st.classList.toggle('now', s === n);
+    st.classList.toggle('done', s < n);
+  });
+}
+function show(id) {
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  const el = $(id);
+  el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+$('#btnFS').addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  } else {
+    document.exitFullscreen?.();
+  }
 });
 
-const counter = $('#counter'), submit = $('#submit');
-optsEl.addEventListener('change',()=>{
-  const n = $$('#opts input:checked').length;
-  counter.textContent = 'выбрано ' + n + ' из ' + CONFIG.options.length;
-  submit.disabled = n === 0;
-});
+/* ══════════════════════════════════════════════════════════════
+   МАТЕРИАЛЫ ИЗ GOOGLE DRIVE — предзагрузка целиком в память.
+   Папка публичная («всем по ссылке»); список файлов и сами байты
+   берём через Drive API v3 (единственный CORS-доступный путь).
+   Каждый файл скачивается в Blob → URL.createObjectURL, поэтому
+   видео стартуют мгновенно, без сети в момент показа.
+   ══════════════════════════════════════════════════════════════ */
+const stripExt = n => n.replace(/\.[^.]+$/, '');
+const extOf    = n => (n.match(/\.([^.]+)$/) || ['', ''])[1].toLowerCase();
+const fmtMB    = b => (b / 1048576).toFixed(1).replace('.', ',') + ' МБ';
 
-/* ── ③ проверка ────────────────────────────────────────────── */
-submit.addEventListener('click',runCheck);
+// приоритет расширений при выборе файла из папки
+const EXT_PRIORITY = {
+  video: ['mp4', 'webm', 'mov', 'm4v'],       // mp4 надёжнее всего играет в Chrome
+  image: ['jpg', 'jpeg', 'png', 'webp'],
+};
 
-async function runCheck(){
-  const picked = $$('#opts input:checked').map(i=>CONFIG.options[+i.value]);
-  const mini = $('#mini'); mini.innerHTML = '';
-  picked.forEach((t,i)=>{
-    const li = document.createElement('li');
-    li.textContent = '— ' + t;
-    li.style.animationDelay = (i*90) + 'ms';
-    mini.appendChild(li);
+const MEDIA = {
+  items: new Map(),          // ключ: base в нижнем регистре
+  totalBytes: 0,
+  gotBytes: 0,
+  get(base) {
+    const it = this.items.get(String(base).toLowerCase());
+    return it && it.state === 'done' ? it : null;
+  },
+};
+
+const LD = { active: false, bases: [], only: null };
+
+/* Полный список того, что нужно квизу. */
+function mediaManifest() {
+  const m = [];
+  CONFIG.round1Questions.forEach((_, i) =>
+    m.push({ base: `${CONFIG.media.round1Prefix}${i + 1}`, kind: 'video' }));
+  m.push({ base: stripExt(CONFIG.media.puzzleImage), kind: 'image' });
+  m.push({ base: CONFIG.media.round4Video, kind: 'video' });
+  CONFIG.media.finalPhotos.forEach(f => m.push({ base: stripExt(f), kind: 'image' }));
+  return LD.only ? m.filter(x => LD.only.includes(x.base)) : m;
+}
+
+async function driveList() {
+  const { folderId, apiKey } = CONFIG.drive;
+  let files = [], pageToken = '';
+  do {
+    const u = new URL('https://www.googleapis.com/drive/v3/files');
+    u.searchParams.set('q', `'${folderId}' in parents and trashed=false`);
+    u.searchParams.set('fields', 'nextPageToken,files(id,name,mimeType,size)');
+    u.searchParams.set('pageSize', '1000');
+    u.searchParams.set('key', apiKey);
+    if (pageToken) u.searchParams.set('pageToken', pageToken);
+    const r = await fetch(u);
+    if (!r.ok) throw new Error(await driveErrText(r));
+    const j = await r.json();
+    files = files.concat(j.files || []);
+    pageToken = j.nextPageToken || '';
+  } while (pageToken);
+  return files;
+}
+
+async function driveErrText(r) {
+  let msg = `HTTP ${r.status}`;
+  try { const j = await r.json(); if (j.error?.message) msg += ` — ${j.error.message}`; } catch {}
+  if (r.status === 400 || /API key not valid/i.test(msg))
+    msg += '\nПодсказка: ключ указан с ошибкой либо ещё не активировался.';
+  if (r.status === 403)
+    msg += '\nПодсказка: в проекте ключа должен быть включён «Google Drive API» ' +
+           '(APIs & Services → Library), а к папке открыт доступ «всем по ссылке».';
+  if (r.status === 404)
+    msg += '\nПодсказка: проверьте folderId и что папка не удалена.';
+  return msg;
+}
+
+function pickCandidate(cands, kind) {
+  if (!cands.length) return null;
+  const order = EXT_PRIORITY[kind] || [];
+  return cands.slice().sort((a, b) => {
+    const ia = order.indexOf(extOf(a.name)), ib = order.indexOf(extOf(b.name));
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  })[0];
+}
+
+async function downloadItem(it, onChunk) {
+  const u = `https://www.googleapis.com/drive/v3/files/${it.fileId}` +
+            `?alt=media&key=${encodeURIComponent(CONFIG.drive.apiKey)}`;
+  const r = await fetch(u);
+  if (!r.ok) throw new Error(await driveErrText(r));
+  if (!r.body || !r.body.getReader) {           // очень старый браузер
+    const b = await r.blob(); onChunk(b.size); return b;
+  }
+  const reader = r.body.getReader();
+  const chunks = [];
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    onChunk(value.byteLength);
+  }
+  return new Blob(chunks, { type: it.mime || (it.kind === 'video' ? 'video/mp4' : 'image/jpeg') });
+}
+
+/* ---------- интерфейс экрана загрузки ---------- */
+function chipOf(it) { return document.getElementById('lchip-' + it.key); }
+
+function renderChips(manifest) {
+  const box = $('#ldChips');
+  manifest.forEach(m => {
+    const it = MEDIA.items.get(m.base.toLowerCase());
+    if (chipOf(it)) return;
+    const c = document.createElement('span');
+    c.className = 'lchip';
+    c.id = 'lchip-' + it.key;
+    c.textContent = it.base;
+    box.appendChild(c);
   });
+}
 
-  const logs = $('#logs'); logs.innerHTML = '';
-  const bar  = $('#bar');  bar.style.width = '0%';
-  $('#strike').classList.remove('draw');
+function chipState(it) {
+  const c = chipOf(it);
+  if (!c) return;
+  c.className = 'lchip ' + ({ loading: 'loading', done: 'done', err: 'err', miss: 'miss' }[it.state] || '');
+  if (it.name) c.textContent = it.name;
+  if (it.state === 'miss') c.title = 'файла нет в папке';
+  if (it.state === 'err')  c.title = it.err || 'ошибка загрузки';
+}
 
-  const rows = CONFIG.steps.map(name=>{
-    const d = document.createElement('div');
-    d.className = 'log';
-    d.innerHTML = '<span class="spin"></span><span></span>';
-    d.lastElementChild.textContent = name + '...';
-    logs.appendChild(d);
-    return d;
+let ldRafPending = false;
+function updateLoadUI(light) {
+  if (light) {           // частые байтовые апдейты — не чаще кадра
+    if (ldRafPending) return;
+    ldRafPending = true;
+    requestAnimationFrame(() => { ldRafPending = false; updateLoadUI(); });
+    return;
+  }
+  const its = LD.bases.map(b => MEDIA.items.get(b));
+  const total = its.length;
+  const done  = its.filter(i => i.state === 'done').length;
+  $('#ldDone').textContent  = done;
+  $('#ldTotal').textContent = total;
+  const settled = its.filter(i => i.state === 'done' || i.state === 'miss' || i.state === 'err').length;
+  const pct = MEDIA.totalBytes > 0
+    ? Math.min(100, 100 * MEDIA.gotBytes / MEDIA.totalBytes)
+    : (total ? 100 * settled / total : 0);
+  $('#ldBarFill').style.width = pct.toFixed(1) + '%';
+  $('#ldBytes').textContent = MEDIA.totalBytes > 0
+    ? `${fmtMB(Math.min(MEDIA.gotBytes, MEDIA.totalBytes))} из ${fmtMB(MEDIA.totalBytes)}`
+    : '';
+}
+
+async function loadOne(it, attempt = 0) {
+  it.state = 'loading'; chipState(it); updateLoadUI();
+  try {
+    const blob = await downloadItem(it, n => { it.got += n; MEDIA.gotBytes += n; updateLoadUI(true); });
+    if (it.url) URL.revokeObjectURL(it.url);
+    it.url = URL.createObjectURL(blob);
+    if (!it.size) { it.size = blob.size; MEDIA.totalBytes += blob.size; }
+    it.state = 'done'; it.err = '';
+  } catch (e) {
+    MEDIA.gotBytes -= it.got; it.got = 0;
+    if (attempt < 1) return loadOne(it, attempt + 1);   // один тихий повтор
+    it.state = 'err'; it.err = String(e.message || e);
+  }
+  chipState(it); updateLoadUI();
+}
+
+async function poolRun(items, limit, worker) {
+  const q = items.slice();
+  const lane = async () => { for (;;) { const it = q.shift(); if (it === undefined) return; await worker(it); } };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) || 1 }, lane));
+}
+
+async function runPreload() {
+  if (LD.active) return;
+  LD.active = true;
+  $('#ldErr').classList.add('hidden');
+  $('#btnLdRetry').classList.add('hidden');
+  $('#ldKeyForm').classList.add('hidden');
+  $('#ldCounter').classList.remove('done');
+
+  const manifest = mediaManifest();
+  LD.bases = manifest.map(m => m.base.toLowerCase());
+  manifest.forEach(m => {
+    const key = m.base.toLowerCase();
+    if (!MEDIA.items.has(key))
+      MEDIA.items.set(key, { key, base: m.base, kind: m.kind, state: 'wait', got: 0, size: 0 });
   });
+  renderChips(manifest);
+  updateLoadUI();
 
-  show('s-check');
-  await wait(500);
-
-  for (let i = 0; i < rows.length; i++){
-    rows[i].classList.add('show');
-    await wait(CONFIG.timing.step);
-    rows[i].classList.add('done');
-    bar.style.width = Math.round((i+1)/rows.length*100) + '%';
-    await wait(320);
+  let files;
+  try {
+    files = await driveList();
+  } catch (e) {
+    LD.active = false;
+    loadFatal('Не удалось получить список файлов из папки Google Диска.\n' + (e.message || e));
+    return;
   }
 
-  await wait(500);
-  $('#strike').classList.add('draw');
-  await wait(CONFIG.timing.strikeHold);
-  show('s-result');
+  const pend = [];
+  for (const key of LD.bases) {
+    const it = MEDIA.items.get(key);
+    if (it.state === 'done') continue;
+    const cands = files.filter(f => stripExt(f.name).toLowerCase() === key);
+    const pick = pickCandidate(cands, it.kind);
+    if (!pick) { it.state = 'miss'; it.got = 0; chipState(it); continue; }
+    it.fileId = pick.id; it.mime = pick.mimeType; it.name = pick.name;
+    it.size = +pick.size || 0; it.got = 0; it.state = 'queue';
+    pend.push(it);
+  }
+  MEDIA.totalBytes = LD.bases.reduce((s, k) => s + (MEDIA.items.get(k).size || 0), 0);
+  MEDIA.gotBytes   = LD.bases.reduce((s, k) => {
+    const i = MEDIA.items.get(k);
+    return s + (i.state === 'done' ? (i.size || 0) : 0);
+  }, 0);
+  updateLoadUI();
+
+  await poolRun(pend, 3, loadOne);   // три параллельных потока
+  LD.active = false;
+  finishLoad();
 }
 
-/* ── ④ видео жениха ────────────────────────────────────────── */
-(function buildMedia(){
-  const slot = $('#media-slot');
-  const fallback = () => {
-    slot.innerHTML = '';
-    const card = document.createElement('div');
-    card.className = 'quote-card';
-    card.textContent = CONFIG.quote;
-    slot.appendChild(card);
-    const cap = document.createElement('div');
-    cap.className = 'caption';
-    cap.textContent = CONFIG.caption;
-    slot.appendChild(cap);
-  };
-  if(!CONFIG.video){ fallback(); return; }
+function finishLoad() {
+  const its  = LD.bases.map(b => MEDIA.items.get(b));
+  const bad  = its.filter(i => i.state === 'err');
+  const miss = its.filter(i => i.state === 'miss');
+  updateLoadUI();
 
-  const box = document.createElement('div');
-  box.className = 'media';
+  if (!bad.length && !miss.length) {
+    $('#ldCounter').classList.add('done');
+    $('#ldBytes').textContent = 'Все материалы в памяти — можно начинать.';
+    setTimeout(proceedAfterLoad, 700);
+    return;
+  }
+  const lines = [];
+  if (miss.length) lines.push('Нет в папке: ' + miss.map(i => i.base + '.*').join(', '));
+  bad.forEach(i => lines.push(`${i.base}: ${i.err}`));
+  lines.push('', 'Можно докачать повторно или продолжить — вместо недостающего будут заглушки.');
+  const err = $('#ldErr');
+  err.textContent = lines.join('\n');
+  err.classList.remove('hidden');
+  $('#btnLdRetry').classList.remove('hidden');
+  $('#btnLdSkip').classList.remove('hidden');
+}
+
+function loadFatal(msg) {
+  const err = $('#ldErr');
+  err.textContent = msg;
+  err.classList.remove('hidden');
+  $('#ldKeyForm').classList.remove('hidden');   // возможно, дело в ключе
+  $('#btnLdSkip').classList.remove('hidden');
+  if (CONFIG.drive.apiKey) $('#ldKey').value = CONFIG.drive.apiKey;
+}
+
+$('#btnLdGo').addEventListener('click', () => {
+  const k = $('#ldKey').value.trim();
+  if (!k) { $('#ldKey').focus(); return; }
+  CONFIG.drive.apiKey = k;
+  runPreload();
+});
+$('#ldKey').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btnLdGo').click(); });
+$('#btnLdRetry').addEventListener('click', () => runPreload());
+$('#btnLdSkip').addEventListener('click', () => proceedAfterLoad());
+
+/* --- универсальный видеоблок --------------------------------
+   Сначала берёт предзагруженный blob из MEDIA (мгновенный старт).
+   Если его нет — пробует файлы рядом с index.html, а если и их
+   нет — аккуратная заглушка, квиз не ломается. */
+function createVideo(baseName, label) {
+  const wrap = document.createElement('div');
+  wrap.className = 'video-frame rise-in';
+
+  const tag = document.createElement('span');
+  tag.className = 'video-label';
+  tag.textContent = label;
+
   const v = document.createElement('video');
-  v.src = CONFIG.video;
-  if(CONFIG.poster) v.poster = CONFIG.poster;
-  v.controls = true; v.playsInline = true; v.preload = 'metadata';
-  v.addEventListener('error', fallback);
-  box.appendChild(v);
-  slot.appendChild(box);
+  v.controls = true;
+  v.playsInline = true;
+  v.setAttribute('playsinline', '');
+  v.preload = 'auto';
 
-  const cap = document.createElement('div');
-  cap.className = 'caption';
-  cap.textContent = CONFIG.caption;
-  slot.appendChild(cap);
-})();
-
-/* ── ⑤ финал ───────────────────────────────────────────────── */
-$('#to-final').addEventListener('click',()=>{ show('s-final'); runFinale(); });
-
-let finaleStarted = false;
-async function runFinale(){
-  if(finaleStarted) return; finaleStarted = true;
-
-  const box = $('#flines'); box.innerHTML = '';
-  const made = [];
-
-  for (const text of CONFIG.finale){
-    const p = document.createElement('p');
-    p.className = 'fline';
-    p.textContent = text;
-    box.appendChild(p);
-    requestAnimationFrame(()=>p.classList.add('show'));
-    made.push(p);
-    await wait(CONFIG.timing.line);
+  const pre = MEDIA.get(baseName);
+  if (pre) {
+    v.src = pre.url;                       // blob уже в памяти
+  } else {
+    // запасной путь: вдруг файлы всё же лежат рядом с index.html
+    CONFIG.media.videoExts.forEach(ext => {
+      const s = document.createElement('source');
+      s.src = `${baseName}.${ext}`;
+      v.appendChild(s);
+    });
   }
 
-  await wait(CONFIG.timing.pause);
+  const missing = document.createElement('div');
+  missing.className = 'video-missing hidden';
+  missing.innerHTML = pre
+    ? `Файл <code>${pre.name || baseName}</code> загрузился, но браузер не смог его воспроизвести — ` +
+      `скорее всего, это HEVC-кодек из iPhone. Пересохраните видео в H.264 (mp4) и замените в папке.<br>` +
+      `А сейчас пусть Артём ответит голосом из зала&nbsp;🙂`
+    : `Видео <code>${baseName}.*</code> не нашлось в папке Google Диска.<br>` +
+      `Загрузите файл в папку и обновите страницу — а сейчас просто пусть Артём ответит голосом из зала&nbsp;🙂`;
 
-  // клетка растворяется, проявляются фотографии
-  document.body.classList.add('night');
-  document.querySelector('meta[name=theme-color]').setAttribute('content','#0E1324');
-  startPhotos();
-  made.forEach(p=>p.classList.add('dim'));
+  let loaded = false;
+  v.addEventListener('loadeddata', () => { loaded = true; wrap.dispatchEvent(new CustomEvent('video-ready')); });
+  v.addEventListener('ended',      () => { wrap.dispatchEvent(new CustomEvent('video-ended')); });
 
-  await wait(CONFIG.timing.keyDelay);
+  const lastSource = v.querySelector('source:last-of-type');
+  const fail = () => {
+    if (loaded) return;
+    wrap.classList.remove('video-frame');
+    v.remove(); tag.remove();
+    missing.classList.remove('hidden');
+    wrap.dispatchEvent(new CustomEvent('video-missing'));
+  };
+  lastSource ? lastSource.addEventListener('error', fail)
+             : v.addEventListener('error', fail);
+  // страховка на случай экзотических ошибок загрузки
+  setTimeout(() => { if (!loaded && v.readyState === 0 && v.networkState === 3) fail(); }, 4000);
 
-  const key = document.createElement('p');
-  key.className = 'fline key';
-  key.textContent = CONFIG.finaleKey;
-  const qed = document.createElement('span');
-  qed.className = 'qed'; qed.textContent = '♥';
-  key.appendChild(qed);
-  box.appendChild(key);
-  requestAnimationFrame(()=>{ key.classList.add('show'); });
-  await wait(1400); qed.classList.add('show');
-
-  await wait(CONFIG.timing.envDelay);
-  $('#env-stage').classList.add('show');
+  wrap.appendChild(tag);
+  wrap.appendChild(v);
+  wrap.appendChild(missing);
+  return { wrap, video: v };
 }
 
-/* фон из фотографий: используются только реально загрузившиеся */
-function startPhotos(){
-  const layer = $('#photos');
-  const ok = [];
-  let started = false;
+/* ══════════════════════════════════════════════════════════════
+   ВСТУПЛЕНИЕ
+   ══════════════════════════════════════════════════════════════ */
+async function runIntro() {
+  setStep(0); setChip('');
+  show('#s-intro');
+  const seq = makeSeq($('#s-intro .stage'));
 
-  const begin = () => {
-    if(started || !ok.length) return;
-    started = true;
-    let i = 0;
-    ok[0].classList.add('on');
-    setInterval(()=>{
-      ok[i].classList.remove('on');
-      i = (i+1) % ok.length;
-      ok[i].classList.add('on');
-    }, CONFIG.timing.photoEvery);
+  await pause(700, seq);
+  await typeLine($('#introHello'), `Добро пожаловать, ${CONFIG.bride}.`, { speed: 55, seq });
+  await pause(600, seq);
+  await typeLine($('#introSub1'), 'Сегодня тебе предстоит решить необычную задачу.', { speed: 26, seq });
+  await pause(450, seq);
+  await typeLine($('#introSub2'), 'Исходные данные известны.', { speed: 26, seq });
+  await pause(600, seq);
+
+  const dataLines = [
+    CONFIG.bride,
+    'Самая красивая невеста',
+    'Математик',
+    'Лучшая подруга',
+    'Любимый человек одного очень счастливого мужчины',
+  ];
+  const block = $('#introData');
+  block.classList.remove('hidden');
+  const box = $('#introDataLines');
+  for (const txt of dataLines) {
+    const row = document.createElement('div');
+    row.className = 'data-line';
+    row.innerHTML = `<span class="ck">✔</span><span>${txt}</span>`;
+    box.appendChild(row);
+    requestAnimationFrame(() => requestAnimationFrame(() => row.classList.add('show')));
+    await pause(520, seq);
+  }
+
+  await pause(700, seq);
+  await typeLine($('#introTail'), 'Осталось найти только один ответ.', { speed: 40, seq });
+  await pause(400, seq);
+
+  const actions = $('#introActions');
+  actions.classList.remove('hidden');
+  actions.classList.add('rise-in');
+}
+
+$('#btnStart').addEventListener('click', () => runRound1Intro());
+
+/* ══════════════════════════════════════════════════════════════
+   РАУНД 1 — «Насколько хорошо ты знаешь Артёма?»
+   Механика честной сверки: Анна отвечает вслух → видео Артёма →
+   зал решает, засчитывать ли совпадение. Юмор — в вердиктах.
+   ══════════════════════════════════════════════════════════════ */
+const R1 = { i: 0, score: 0 };
+
+const QUIPS_YES = [
+  'Q.E.D. Что и требовалось доказать.',
+  'Сходимость абсолютная.',
+  'Погрешность: 0,000%.',
+  'В яблочко. Теорема о невесте подтверждается.',
+  'Совпадение не случайно — доказано.',
+  'Точность швейцарского хронометра.',
+];
+const QUIPS_NO = [
+  'Контрпример найден… но свадьба всё равно состоится.',
+  'Спишем на статистическую погрешность.',
+  'Округлим в пользу любви.',
+  'Неизвестная переменная. Тем интереснее совместная жизнь.',
+  'Внесём в план дальнейших исследований.',
+];
+
+async function runRound1Intro() {
+  setStep(1); setChip('');
+  show('#s-r1i');
+  const seq = makeSeq($('#s-r1i .stage'));
+  await pause(400, seq);
+  await typeLine($('#r1iLead'),
+    'Правила простые: вопрос → твой ответ вслух → видеопоказания жениха. ' +
+    'Зал выступает счётной комиссией и решает, было ли совпадение.',
+    { speed: 20, seq });
+  $('#r1iActions').classList.remove('hidden');
+  $('#r1iActions').classList.add('rise-in');
+}
+$('#btnR1Start').addEventListener('click', () => { R1.i = 0; R1.score = 0; nextR1Question(); });
+
+async function nextR1Question() {
+  const total = CONFIG.round1Questions.length;
+  if (R1.i >= total) return showR1Result();
+
+  show('#s-r1');
+  setChip(`совпадений: ${R1.score} / ${total}`);
+  $('#r1Counter').textContent = `Вопрос ${R1.i + 1} / ${total}`;
+  $('#r1ScoreTop').textContent = `совпадений: ${R1.score}`;
+  $('#r1Bar').style.width = `${(R1.i / total) * 100}%`;
+
+  $('#r1Media').innerHTML = '';
+  $('#r1Media').classList.add('hidden');
+  $('#r1Verdict').classList.add('hidden');
+  $('#r1Quip').classList.add('hidden');
+  $('#r1Hint').classList.remove('hidden');
+  $('#r1Actions').classList.remove('hidden');
+  $('#btnShowAnswer').disabled = false;
+
+  const seq = makeSeq($('#r1Q'));
+  await typeLine($('#r1Q'), CONFIG.round1Questions[R1.i], { speed: 26, seq });
+}
+
+$('#btnShowAnswer').addEventListener('click', () => {
+  $('#btnShowAnswer').disabled = true;
+  $('#r1Actions').classList.add('hidden');
+  $('#r1Hint').classList.add('hidden');
+
+  const base = `${CONFIG.media.round1Prefix}${R1.i + 1}`;
+  const media = $('#r1Media');
+  media.classList.remove('hidden');
+
+  const { wrap, video } = createVideo(base, `ответ Артёма · №${R1.i + 1}`);
+  media.appendChild(wrap);
+
+  const showVerdict = () => {
+    const v = $('#r1Verdict');
+    if (v.classList.contains('hidden')) {
+      v.classList.remove('hidden');
+      v.classList.add('rise-in');
+    }
   };
+  wrap.addEventListener('video-ended',   showVerdict);
+  wrap.addEventListener('video-missing', showVerdict);
+  // страховка: если видео длинное/не досмотрели — кнопки появятся сами
+  wrap.addEventListener('video-ready', () => setTimeout(showVerdict, 2500));
+  setTimeout(showVerdict, 5000);
 
-  CONFIG.photos.forEach(src=>{
+  video.play().catch(() => {});
+});
+
+function r1Answer(ok) {
+  if (ok) R1.score++;
+  const pool = ok ? QUIPS_YES : QUIPS_NO;
+  const quip = $('#r1Quip');
+  quip.textContent = (ok ? '✔ ' : '✘ ') + pool[Math.floor(Math.random() * pool.length)];
+  quip.classList.remove('hidden');
+  $('#r1Verdict').classList.add('hidden');
+  $('#r1ScoreTop').textContent = `совпадений: ${R1.score}`;
+  setChip(`совпадений: ${R1.score} / ${CONFIG.round1Questions.length}`);
+  R1.i++;
+  setTimeout(nextR1Question, 1500);
+}
+$('#btnYes').addEventListener('click', () => r1Answer(true));
+$('#btnNo' ).addEventListener('click', () => r1Answer(false));
+
+function r1Verdict(score, total) {
+  const p = score / total;
+  if (p === 1) return {
+    stamp: 'доказано', ok: true,
+    title: 'Абсолютная сходимость',
+    text: `${CONFIG.bride} знает ${CONFIG.groom}а лучше, чем он сам. Что и требовалось доказать.`,
+  };
+  if (p >= 0.75) return {
+    stamp: 'доказано', ok: true,
+    title: 'Погрешность пренебрежимо мала',
+    text: 'Совпадение в пределах трёх сигм. Гипотеза об идеальной паре подтверждена экспериментально.',
+  };
+  if (p >= 0.45) return {
+    stamp: 'почти доказано', ok: true,
+    title: 'Уверенная корреляция',
+    text: 'Несколько неизвестных осталось — тем интереснее будут совместные исследования.',
+  };
+  return {
+    stamp: 'нужны данные', ok: false,
+    title: 'Выборка мала',
+    text: 'Требуется дополнительный эксперимент длиной в целую жизнь. К счастью, он уже запланирован.',
+  };
+}
+
+function showR1Result() {
+  const total = CONFIG.round1Questions.length;
+  const v = r1Verdict(R1.score, total);
+  show('#s-r1res');
+  setChip('');
+  $('#r1ResNum').textContent = R1.score;
+  $('#r1ResDen').textContent = total;
+  $('#r1ResPct').textContent = `коэффициент совпадения ≈ ${Math.round((R1.score / total) * 100)}%`;
+  const st = $('#r1Stamp');
+  st.textContent = v.stamp;
+  st.classList.toggle('ok', v.ok);
+  $('#r1ResTitle').textContent = v.title;
+  $('#r1ResText').textContent = v.text;
+}
+$('#btnToR2').addEventListener('click', () => runRound2Intro());
+
+/* ══════════════════════════════════════════════════════════════
+   РАУНД 2 — «Собери жениха»
+   Плитки перемешаны; клик выбирает плитку, второй клик по другой —
+   меняет их местами. Побеждает та, кто вернула на место ВСЕ
+   фрагменты Артёма: остальное фото соберётся само.
+   ══════════════════════════════════════════════════════════════ */
+const R2 = {
+  grid: CONFIG.puzzle.grid,
+  n: 0,
+  slots: [],        // slots[позиция] = id фрагмента (id = «домашняя» позиция)
+  posOf: [],        // posOf[id] = текущая позиция
+  labels: [],       // случайные номерки на фрагментах (не подсказывают решение)
+  selected: null,
+  locked: false,
+  solved: false,
+  imgURL: null,
+};
+
+function groomSet() { return new Set(CONFIG.puzzle.groomTiles); }
+
+/* Фото для пазла: сначала предзагруженный blob из папки Google Диска,
+   затем файл рядом с index.html, иначе — рисованная заглушка,
+   чтобы механику можно было проверить заранее. */
+function loadPuzzleImage() {
+  return new Promise(resolve => {
+    const pre = MEDIA.get(stripExt(CONFIG.media.puzzleImage));
+    const src = pre ? pre.url : CONFIG.media.puzzleImage;
     const img = new Image();
-    img.onload = () => {
-      const d = document.createElement('div');
-      d.className = 'ph';
-      d.style.backgroundImage = 'url("' + src + '")';
-      layer.appendChild(d);
-      ok.push(d);
-      begin();
-    };
+    img.onload  = () => resolve({ url: src, real: true,
+                                  w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => resolve({ url: makePlaceholder(), real: false, w: 900, h: 900 });
     img.src = src;
   });
 }
 
-/* ── ⑥ конверт и письмо ────────────────────────────────────── */
-$('#env').addEventListener('click', async e => {
-  const env = e.currentTarget;
-  if(env.classList.contains('open')) return;
-  env.classList.add('open');
-  await wait(1000);
-  env.classList.add('gone');
-  await wait(500);
-  show('s-letter');
-  writeLetter();
-});
+function makePlaceholder() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 900;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 900, 900);
+  g.addColorStop(0, '#FBE4EC'); g.addColorStop(1, '#F3C3D4');
+  x.fillStyle = g; x.fillRect(0, 0, 900, 900);
+  // силуэт невесты (слева, светлый)
+  x.fillStyle = 'rgba(255,255,255,.85)';
+  x.beginPath(); x.arc(300, 300, 88, 0, 7); x.fill();
+  x.beginPath(); x.moveTo(300, 380); x.lineTo(170, 800); x.lineTo(430, 800); x.closePath(); x.fill();
+  // силуэт жениха (справа, тёмно-розовый) — совпадает с groomTiles по умолчанию
+  x.fillStyle = '#C75B7F';
+  x.beginPath(); x.arc(640, 280, 84, 0, 7); x.fill();
+  x.fillRect(560, 372, 160, 300);
+  x.fillRect(576, 672, 52, 150); x.fillRect(692, 672, 52, 150);
+  x.fillStyle = 'rgba(122,42,70,.85)';
+  x.font = '600 34px monospace'; x.textAlign = 'center';
+  x.fillText('здесь будет r2.jpg', 450, 90);
+  return c.toDataURL('image/jpeg', 0.9);
+}
 
-async function writeLetter(){
-  const el = $('#letter'); el.innerHTML = '';
-  for (const line of CONFIG.letter){
-    const p = document.createElement('p');
-    p.textContent = line;
-    el.appendChild(p);
-    requestAnimationFrame(()=>p.classList.add('show'));
-    await wait(1500);
+async function runRound2Intro() {
+  setStep(2); setChip('');
+  show('#s-r2i');
+  const seq = makeSeq($('#s-r2i .stage'));
+  await pause(400, seq);
+  await typeLine($('#r2iLead'),
+    'Фотография рассыпалась на фрагменты. Восстанавливать всю не нужно — ' +
+    'найди и верни на место только те части, где виден Артём. Остальное… увидишь сама.',
+    { speed: 20, seq });
+  $('#r2iActions').classList.remove('hidden');
+  $('#r2iActions').classList.add('rise-in');
+}
+$('#btnR2Start').addEventListener('click', () => startPuzzle());
+
+async function startPuzzle() {
+  show('#s-r2');
+  R2.grid = CONFIG.puzzle.grid;
+  R2.n = R2.grid * R2.grid;
+  R2.solved = false; R2.locked = false; R2.selected = null;
+  $('#board').classList.remove('solved');
+  $('#r2Done').classList.add('hidden');
+  $('#btnToR3').classList.add('hidden');
+  $('#btnShuffle').classList.remove('hidden');
+  $('#r2Quote').textContent = '';
+
+  if (!R2.imgURL) {
+    const info = await loadPuzzleImage();
+    R2.imgURL = info.url;
   }
-  if(CONFIG.signature){
-    const s = document.createElement('div');
-    s.className = 'sign';
-    s.textContent = CONFIG.signature;
-    el.appendChild(s);
-    requestAnimationFrame(()=>s.classList.add('show'));
+  shufflePuzzle();
+  renderBoard();
+  updatePuzzleProgress();
+}
+
+function shufflePuzzle() {
+  const gs = groomSet();
+  let perm;
+  let guard = 0;
+  do {
+    perm = shuffle([...Array(R2.n).keys()]);
+    guard++;
+    // ни один фрагмент жениха не должен случайно стоять на месте
+  } while (guard < 400 && [...gs].some(id => perm[id] === id));
+  R2.slots = perm;                      // slots[pos] = id
+  R2.posOf = Array(R2.n);
+  perm.forEach((id, pos) => { R2.posOf[id] = pos; });
+  R2.labels = shuffle([...Array(R2.n).keys()].map(i => i + 1));
+}
+
+function tileXY(pos) {
+  const g = R2.grid;
+  return { left: (pos % g) * (100 / g), top: Math.floor(pos / g) * (100 / g) };
+}
+
+function renderBoard() {
+  const board = $('#board');
+  board.innerHTML = '';
+  const g = R2.grid, size = 100 / g;
+
+  for (let id = 0; id < R2.n; id++) {
+    const t = document.createElement('div');
+    t.className = 'tile';
+    t.dataset.id = id;
+    t.style.width  = size + '%';
+    t.style.height = size + '%';
+    t.style.backgroundImage = `url("${R2.imgURL}")`;
+    t.style.backgroundSize = `${g * 100}% ${g * 100}%`;
+    const hr = Math.floor(id / g), hc = id % g;   // «домашние» координаты
+    t.style.backgroundPosition =
+      `${(hc * 100) / (g - 1)}% ${(hr * 100) / (g - 1)}%`;
+    const { left, top } = tileXY(R2.posOf[id]);
+    t.style.left = left + '%';
+    t.style.top  = top  + '%';
+
+    const num = document.createElement('span');
+    num.className = 'num';
+    num.textContent = R2.labels[id];
+    t.appendChild(num);
+
+    t.addEventListener('click', () => onTileClick(id, t));
+    board.appendChild(t);
   }
 }
+
+function onTileClick(id, el) {
+  if (R2.locked || R2.solved) return;
+  if (R2.selected === null) {
+    R2.selected = id;
+    el.classList.add('selected');
+    return;
+  }
+  if (R2.selected === id) {              // повторный клик — снять выделение
+    el.classList.remove('selected');
+    R2.selected = null;
+    return;
+  }
+  const a = R2.selected, b = id;
+  R2.selected = null;
+  $$('#board .tile').forEach(t => t.classList.remove('selected'));
+  swapTiles(a, b);
+}
+
+function swapTiles(a, b) {
+  const pa = R2.posOf[a], pb = R2.posOf[b];
+  R2.posOf[a] = pb; R2.posOf[b] = pa;
+  R2.slots[pa] = b; R2.slots[pb] = a;
+  moveTile(a); moveTile(b);
+  updatePuzzleProgress();
+  if (isGroomAssembled()) finishPuzzle();
+}
+
+function moveTile(id) {
+  const el = $(`#board .tile[data-id="${id}"]`);
+  const { left, top } = tileXY(R2.posOf[id]);
+  el.style.left = left + '%';
+  el.style.top  = top  + '%';
+}
+
+function isGroomAssembled() {
+  return [...groomSet()].every(id => R2.posOf[id] === id);
+}
+
+function updatePuzzleProgress() {
+  const gs = groomSet();
+  const done = [...gs].filter(id => R2.posOf[id] === id).length;
+  $('#r2Prog').textContent = `|Артём| = ${done} / ${gs.size}`;
+  setChip(`фрагменты жениха: ${done} / ${gs.size}`);
+}
+
+$('#btnShuffle').addEventListener('click', () => {
+  if (R2.solved) return;
+  R2.selected = null;
+  shufflePuzzle();
+  $$('#board .tile').forEach(t => {
+    t.classList.remove('selected');
+    const id = +t.dataset.id;
+    t.querySelector('.num').textContent = R2.labels[id];
+    const { left, top } = tileXY(R2.posOf[id]);
+    t.style.left = left + '%';
+    t.style.top  = top  + '%';
+  });
+  updatePuzzleProgress();
+});
+
+async function finishPuzzle() {
+  R2.locked = true; R2.solved = true;
+  $('#btnShuffle').classList.add('hidden');
+  await sleep(650);
+
+  // магия: остальные фрагменты возвращаются домой сами
+  const rest = shuffle([...Array(R2.n).keys()].filter(id => R2.posOf[id] !== id));
+  rest.forEach((id, k) => {
+    setTimeout(() => {
+      const pos = R2.posOf[id];
+      const other = R2.slots[id];           // кто занимает «дом» этой плитки
+      R2.slots[pos] = other; R2.posOf[other] = pos;
+      R2.slots[id] = id;     R2.posOf[id] = id;
+      moveTile(id); moveTile(other);
+    }, k * 90);
+  });
+
+  const totalWait = rest.length * 90 + 800;
+  await sleep(totalWait);
+  $$('#board .tile').forEach(t => { // финальная выравнивающая страховка
+    const id = +t.dataset.id;
+    R2.posOf[id] = id;
+    moveTile(id);
+  });
+  $('#board').classList.add('solved');
+  setChip('картина сложилась ♥');
+  await sleep(900);
+
+  const done = $('#r2Done');
+  done.classList.remove('hidden');
+  const seq = makeSeq(done);
+  await typeLine($('#r2Quote'),
+    'Иногда достаточно найти одного человека, чтобы вся картина сложилась сама собой.',
+    { speed: 34, seq });
+  $('#btnToR3').classList.remove('hidden');
+  $('#btnToR3').classList.add('rise-in');
+}
+$('#btnToR3').addEventListener('click', () => runRound3Intro());
+
+/* ══════════════════════════════════════════════════════════════
+   SETUP-режим: index.html?setup — разметка плиток жениха на r2.jpg
+   ══════════════════════════════════════════════════════════════ */
+const SETUP = { grid: CONFIG.puzzle.grid, groom: new Set(CONFIG.puzzle.groomTiles), url: null };
+
+async function runSetup() {
+  show('#s-setup');
+  setStep(2); setChip('режим настройки');
+  $('#setupGrid').value = String(SETUP.grid);
+  const info = await loadPuzzleImage();
+  SETUP.url = info.url;
+  drawSetupBoard();
+}
+
+function drawSetupBoard() {
+  const board = $('#setupBoard');
+  board.innerHTML = '';
+  const g = SETUP.grid, n = g * g, size = 100 / g;
+  for (let id = 0; id < n; id++) {
+    const t = document.createElement('div');
+    t.className = 'setup-tile' + (SETUP.groom.has(id) ? ' groom' : '');
+    t.style.width = size + '%'; t.style.height = size + '%';
+    t.style.left  = (id % g) * size + '%';
+    t.style.top   = Math.floor(id / g) * size + '%';
+    t.style.backgroundImage = `url("${SETUP.url}")`;
+    t.style.backgroundSize = `${g * 100}% ${g * 100}%`;
+    t.style.backgroundPosition =
+      `${((id % g) * 100) / (g - 1)}% ${(Math.floor(id / g) * 100) / (g - 1)}%`;
+    t.innerHTML += `<span class="sn">${id}</span>`;
+    t.addEventListener('click', () => {
+      if (SETUP.groom.has(id)) SETUP.groom.delete(id); else SETUP.groom.add(id);
+      t.classList.toggle('groom');
+      renderSetupOut();
+    });
+    board.appendChild(t);
+  }
+  renderSetupOut();
+}
+
+function renderSetupOut() {
+  const arr = [...SETUP.groom].sort((a, b) => a - b);
+  $('#setupOut').textContent =
+`puzzle: {
+  grid: ${SETUP.grid},
+  groomTiles: [${arr.join(', ')}],
+},`;
+}
+
+$('#setupGrid').addEventListener('change', e => {
+  SETUP.grid = +e.target.value;
+  SETUP.groom.clear();
+  drawSetupBoard();
+});
+$('#btnSetupClear').addEventListener('click', () => { SETUP.groom.clear(); drawSetupBoard(); });
+$('#btnSetupCopy').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText($('#setupOut').textContent);
+    $('#btnSetupCopy').textContent = 'скопировано ✔';
+  } catch {
+    $('#btnSetupCopy').textContent = 'выделите и скопируйте вручную';
+  }
+  setTimeout(() => { $('#btnSetupCopy').textContent = 'скопировать конфиг'; }, 1800);
+});
+
+/* ══════════════════════════════════════════════════════════════
+   РАУНД 3 — «Аксиомы мужа»
+   ══════════════════════════════════════════════════════════════ */
+const R3 = { i: 0, score: 0, items: [] };
+
+async function runRound3Intro() {
+  setStep(3); setChip('');
+  show('#s-r3i');
+  const seq = makeSeq($('#s-r3i .stage'));
+  await pause(400, seq);
+  await typeLine($('#r3iLead'),
+    'Аксиома — утверждение, которое принимается без доказательств. ' +
+    'Перед тобой набор утверждений об Артёме. Отдели истинные аксиомы от ложных гипотез.',
+    { speed: 20, seq });
+  $('#r3iActions').classList.remove('hidden');
+  $('#r3iActions').classList.add('rise-in');
+}
+$('#btnR3Start').addEventListener('click', () => {
+  R3.i = 0; R3.score = 0;
+  R3.items = shuffle(CONFIG.axioms);
+  nextAxiom();
+});
+
+async function nextAxiom() {
+  const total = R3.items.length;
+  if (R3.i >= total) return showR3Result();
+
+  show('#s-r3');
+  setChip(`верно: ${R3.score} / ${total}`);
+  $('#r3Counter').textContent = `Утверждение ${R3.i + 1} / ${total}`;
+  $('#r3ScoreTop').textContent = `верно: ${R3.score}`;
+  $('#r3Bar').style.width = `${(R3.i / total) * 100}%`;
+  $('#r3Reveal').innerHTML = '';
+  $$('#r3Btns .btn').forEach(b => b.disabled = false);
+
+  const el = $('#r3Statement');
+  el.classList.add('tw');
+  const seq = makeSeq($('#s-r3 .ax-card'));
+  await typeLine(el, `«${R3.items[R3.i].t}»`, { speed: 22, seq });
+}
+
+function answerAxiom(saidTrue) {
+  const item = R3.items[R3.i];
+  const correct = saidTrue === item.a;
+  if (correct) R3.score++;
+  $$('#r3Btns .btn').forEach(b => b.disabled = true);
+
+  const rev = $('#r3Reveal');
+  const stamp = document.createElement('span');
+  stamp.className = 'stamp' + (item.a ? ' ok' : '');
+  stamp.textContent = item.a ? 'истина' : 'ложь';
+  rev.appendChild(stamp);
+
+  const note = document.createElement('div');
+  note.className = 'ax-note' + (correct ? ' good' : '');
+  note.textContent = correct
+    ? '✔ верно! +1 к знанию аксиоматики'
+    : (item.a ? '✘ увы — это чистая правда о нём' : '✘ увы — это была ловушка');
+  rev.appendChild(note);
+
+  $('#r3ScoreTop').textContent = `верно: ${R3.score}`;
+  setChip(`верно: ${R3.score} / ${R3.items.length}`);
+  R3.i++;
+  setTimeout(nextAxiom, 1900);
+}
+$('#btnAxTrue' ).addEventListener('click', () => answerAxiom(true));
+$('#btnAxFalse').addEventListener('click', () => answerAxiom(false));
+
+function r3Verdict(score, total) {
+  const p = score / total;
+  if (p === 1) return {
+    stamp: 'без замечаний', ok: true,
+    title: 'Аксиоматика освоена безупречно',
+    text: 'Полная система аксиом мужа принята без единого контрпримера. Комиссия аплодирует.',
+  };
+  if (p >= 0.75) return {
+    stamp: 'отлично', ok: true,
+    title: 'Теория мужа сдана на «отлично»',
+    text: 'Пара спорных лемм не в счёт — фундамент семейной теории заложен надёжно.',
+  };
+  if (p >= 0.5) return {
+    stamp: 'зачёт', ok: true,
+    title: 'Зачёт!',
+    text: 'Несколько контрпримеров обнаружено, но общая картина сходится. Пересдача не требуется.',
+  };
+  return {
+    stamp: 'практика', ok: false,
+    title: 'Материал закрепим на практике',
+    text: 'Ежедневно, в течение всей совместной жизни. Лучшего семинара не придумать.',
+  };
+}
+
+function showR3Result() {
+  const total = R3.items.length;
+  const v = r3Verdict(R3.score, total);
+  show('#s-r3res');
+  setChip('');
+  $('#r3ResNum').textContent = R3.score;
+  $('#r3ResDen').textContent = total;
+  $('#r3ResPct').textContent =
+    `контрпримеров: ${total - R3.score} ${plural(total - R3.score, 'штука', 'штуки', 'штук')}`;
+  const st = $('#r3Stamp');
+  st.textContent = v.stamp;
+  st.classList.toggle('ok', v.ok);
+  $('#r3ResTitle').textContent = v.title;
+  $('#r3ResText').textContent = v.text;
+}
+$('#btnToR4').addEventListener('click', () => runRound4());
+
+/* ══════════════════════════════════════════════════════════════
+   РАУНД 4 — «Формула Анны»
+   Утверждения по одному подставляются в уравнение, затем «решатель»
+   честно признаётся: решения нет.
+   ══════════════════════════════════════════════════════════════ */
+const R4 = { skip: false, terms: 0 };
+
+const SUB = ['₀','₁','₂','₃','₄','₅','₆','₇','₈','₉'];
+const subNum = (n) => String(n).split('').map(d => SUB[+d]).join('');
+
+function r4RenderEq() {
+  const parts = [];
+  for (let i = 1; i <= R4.terms; i++) parts.push('x' + subNum(i));
+  $('#r4Eq').textContent = 'A = ' + (parts.length ? parts.join(' + ') : '…');
+}
+
+async function runRound4() {
+  setStep(4); setChip('задача № 5');
+  show('#s-r4');
+  R4.skip = false; R4.terms = 0;
+
+  const list = $('#r4List');
+  list.innerHTML = '';
+  $('#r4Eq').textContent = 'A = …';
+  $('#r4Find').classList.add('hidden');
+  $('#btnSolve').classList.add('hidden');
+  $('#solver').classList.add('hidden');
+  $('#solverLog').innerHTML = '';
+  $('#solveFail').classList.add('hidden');
+  $('#afterFail').classList.add('hidden');
+  $('#r4Media').innerHTML = '';
+  $('#r4Media').classList.add('hidden');
+  $('#btnToFinal').classList.add('hidden');
+  ['#afterLine1', '#afterLine2', '#afterLine3'].forEach(s => { $(s).textContent = ''; });
+
+  const skipBtn = $('#btnR4SkipAnim');
+  skipBtn.classList.remove('hidden');
+
+  for (let i = 0; i < CONFIG.qualities.length; i++) {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="ck">✔</span><span>${CONFIG.qualities[i]}</span>`;
+    list.appendChild(li);
+    requestAnimationFrame(() => requestAnimationFrame(() => li.classList.add('show')));
+    R4.terms = i + 1;
+    r4RenderEq();
+    if (!R4.skip) await sleep(760);
+  }
+
+  skipBtn.classList.add('hidden');
+  $('#r4Find').classList.remove('hidden');
+  $('#r4Find').classList.add('rise-in');
+  await sleep(500);
+  $('#btnSolve').classList.remove('hidden');
+  $('#btnSolve').classList.add('rise-in');
+}
+$('#btnR4SkipAnim').addEventListener('click', () => { R4.skip = true; });
+
+$('#btnSolve').addEventListener('click', async () => {
+  $('#btnSolve').classList.add('hidden');
+  const solver = $('#solver');
+  solver.classList.remove('hidden');
+
+  const steps = [
+    'Проверка исходных данных',
+    'Подстановка значений',
+    'Поиск аналитического решения',
+    'Перебор известных методов',
+    'Сравнение с эталонами',
+    'Вычисление предела при t → ∞',
+  ];
+  const log = $('#solverLog');
+  for (const s of steps) {
+    const ln = document.createElement('div');
+    ln.className = 'ln';
+    ln.innerHTML = `<span>›</span><span>${s}</span><span class="dots"></span>`;
+    log.appendChild(ln);
+    requestAnimationFrame(() => requestAnimationFrame(() => ln.classList.add('show')));
+    await sleep(1150);
+    ln.classList.add('done');
+  }
+  await sleep(650);
+
+  $('#solveFail').classList.remove('hidden');
+  await sleep(1400);
+
+  const after = $('#afterFail');
+  after.classList.remove('hidden');
+  const seq = makeSeq(after);
+  await typeLine($('#afterLine1'), 'Аню невозможно описать набором качеств.', { speed: 34, seq });
+  await pause(500, seq);
+  await typeLine($('#afterLine2'), 'Эта задача не имеет решения.', { speed: 34, seq });
+  await pause(600, seq);
+  await typeLine($('#afterLine3'), 'Потому что…', { speed: 60, seq });
+  await pause(500, seq);
+
+  const media = $('#r4Media');
+  media.classList.remove('hidden');
+  const { wrap, video } = createVideo(CONFIG.media.round4Video, 'слово жениху');
+  media.appendChild(wrap);
+
+  const reveal = () => {
+    const b = $('#btnToFinal');
+    if (b.classList.contains('hidden')) {
+      b.classList.remove('hidden');
+      b.classList.add('rise-in');
+    }
+  };
+  wrap.addEventListener('video-ended',   reveal);
+  wrap.addEventListener('video-missing', reveal);
+  setTimeout(reveal, 9000);
+  video.play().catch(() => {});
+});
+$('#btnToFinal').addEventListener('click', () => runFinal());
+
+/* ══════════════════════════════════════════════════════════════
+   ФИНАЛ
+   ══════════════════════════════════════════════════════════════ */
+let confettiTimer = null;
+
+async function runFinal() {
+  setStep(5); setChip('');
+  show('#s-final');
+  const seq = makeSeq($('#s-final .final-stage'));
+
+  const lines = [
+    'Ты привыкла искать правильные ответы.',
+    'Доказывать теоремы.',
+    'Решать задачи.',
+    'Но некоторые вещи невозможно доказать.',
+  ];
+  const box = $('#finLines');
+  box.innerHTML = '';
+  await pause(600, seq);
+  for (const txt of lines) {
+    const el = document.createElement('div');
+    el.className = 'fl tw';
+    box.appendChild(el);
+    await typeLine(el, txt, { speed: 34, seq });
+    await pause(650, seq);
+  }
+  await pause(900, seq);
+
+  await typeLine($('#finBig'), 'Любовь не нуждается в доказательствах.', { speed: 55, seq });
+
+  // фотографии пары проявляются на фоне
+  $$('.polaroid img').forEach(im => {
+    if (im.dataset.ready) return;
+    im.dataset.ready = '1';
+    const file = CONFIG.media.finalPhotos[+im.dataset.photo] || '';
+    const pre  = MEDIA.get(stripExt(file));
+    im.onerror = () => im.parentElement.remove();   // нет ни blob-а, ни файла — без рамки
+    im.src = pre ? pre.url : file;
+  });
+  const pols = $$('.polaroid');
+  pols.forEach((p, i) => setTimeout(() => p.classList.add('show'), 500 + i * 800));
+
+  await pause(1600, seq);
+  const zone = $('#envZone');
+  zone.classList.remove('hidden');
+  $('#envelope').classList.add('show');
+}
+
+function openEnvelope() {
+  const env = $('#envelope');
+  if (env.classList.contains('open')) return;
+  env.classList.add('open');
+  startConfetti();
+
+  setTimeout(() => {
+    env.classList.add('gone');
+    setTimeout(() => {
+      $('#envZone').classList.add('hidden');
+      const letter = $('#letter');
+      letter.classList.add('show');
+      $$('.l-line, .l-sign, .l-eq', letter).forEach((el, i) => {
+        el.classList.add('l-line');            // единая анимация появления
+        setTimeout(() => el.classList.add('show'), 700 + i * 950);
+      });
+    }, 650);
+  }, 1200);
+}
+$('#envelope').addEventListener('click', openEnvelope);
+$('#envelope').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEnvelope(); }
+});
+
+/* лёгкое конфетти из сердец и математики */
+const CF_GLYPHS = ['♥', '♡', '∞', '+', '=', '√'];
+const CF_COLORS = ['#E2799A', '#C75B7F', '#F3B3C8', '#F7D3DF', '#A94A6A'];
+function startConfetti() {
+  if (confettiTimer) return;
+  const layer = $('#confettiLayer');
+  confettiTimer = setInterval(() => {
+    if (!$('#s-final').classList.contains('active')) return stopConfetti();
+    if (layer.childElementCount > 90) return;
+    const s = document.createElement('span');
+    s.className = 'cf';
+    s.textContent = CF_GLYPHS[Math.floor(Math.random() * CF_GLYPHS.length)];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.color = CF_COLORS[Math.floor(Math.random() * CF_COLORS.length)];
+    s.style.fontSize = (0.8 + Math.random() * 1.5) + 'rem';
+    s.style.opacity = (0.5 + Math.random() * 0.5).toFixed(2);
+    s.style.animationDuration = (5 + Math.random() * 6) + 's';
+    s.addEventListener('animationend', () => s.remove());
+    layer.appendChild(s);
+  }, 260);
+}
+function stopConfetti() {
+  clearInterval(confettiTimer);
+  confettiTimer = null;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Запуск
+   ══════════════════════════════════════════════════════════════ */
+const params = new URLSearchParams(location.search);
+
+// отладка для репетиции: index.html?debug + клавиши 0…5 переключают этапы
+if (params.has('debug')) {
+  document.addEventListener('keydown', e => {
+    const map = {
+      '0': runIntro,
+      '1': runRound1Intro,
+      '2': runRound2Intro,
+      '3': runRound3Intro,
+      '4': runRound4,
+      '5': runFinal,
+    };
+    if (map[e.key]) map[e.key]();
+  });
+}
+
+function proceedAfterLoad() {
+  setChip('');
+  if (params.has('setup')) runSetup();
+  else runIntro();
+}
+
+/* показать экран загрузки и список материалов ещё до старта сети */
+function initLoadScreen() {
+  show('#s-load'); setStep(0); setChip('материалы');
+  const manifest = mediaManifest();
+  LD.bases = manifest.map(m => m.base.toLowerCase());
+  manifest.forEach(m => {
+    const key = m.base.toLowerCase();
+    if (!MEDIA.items.has(key))
+      MEDIA.items.set(key, { key, base: m.base, kind: m.kind, state: 'wait', got: 0, size: 0 });
+  });
+  renderChips(manifest);
+  updateLoadUI();
+}
+
+function boot() {
+  // в режиме разметки достаточно одного файла — фото для пазла
+  if (params.has('setup')) LD.only = [stripExt(CONFIG.media.puzzleImage)];
+
+  initLoadScreen();
+  if (params.has('debug')) $('#btnLdSkip').classList.remove('hidden');
+
+  if (!CONFIG.drive.apiKey) {
+    $('#ldKeyForm').classList.remove('hidden');
+    $('#btnLdSkip').classList.remove('hidden');
+    return;                       // ждём ключ или «продолжить без материалов»
+  }
+  runPreload();
+}
+
+boot();
+
+})();
 </script>
 </body>
 </html>
