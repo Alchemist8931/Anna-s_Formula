@@ -362,6 +362,39 @@ h2{ font-size:clamp(1.7rem, 4vw, 2.5rem); }
 .given-list li.show{ opacity:1; transform:none; }
 .given-list .ck{ color:var(--rose-deep); font-family:var(--mono); font-weight:700; flex:none; }
 @media (max-width:640px){ .given-list{ columns:1; } }
+/* слагаемые-чекбоксы */
+.qopt{
+  cursor:pointer; user-select:none;
+  border:1.5px solid var(--line); border-radius:12px;
+  padding:10px 14px; background:#fff;
+  align-items:center !important;
+  transition:border-color .2s ease, background .2s ease, box-shadow .2s ease,
+             opacity .45s ease, transform .45s ease;
+}
+.qopt:hover{ border-color:var(--line-strong); box-shadow:0 3px 10px rgba(169,74,106,.08); }
+.qopt .box{
+  flex:none; width:20px; height:20px; border-radius:6px;
+  border:1.8px solid var(--line-strong); background:#fff;
+  display:grid; place-items:center; font-size:.78rem; line-height:1; color:#fff;
+  transition:background .2s ease, border-color .2s ease;
+}
+.qopt .xi{
+  margin-left:auto; flex:none; font-family:var(--mono); font-size:.72rem;
+  color:var(--ink-soft); transition:color .2s ease;
+}
+.qopt.on{ border-color:var(--rose-deep); background:var(--blush-2); }
+.qopt.on .box{
+  background:linear-gradient(160deg, var(--rose), var(--rose-deep));
+  border-color:var(--rose-deep);
+  animation:ckPop .3s cubic-bezier(.2,1.5,.4,1);
+}
+.qopt.on .box::after{ content:'✓'; }
+.qopt.on .xi{ color:var(--rose-ink); font-weight:700; }
+@keyframes ckPop{ 0%{ transform:scale(.55);} 60%{ transform:scale(1.18);} 100%{ transform:scale(1);} }
+.given-list.locked{ pointer-events:none; }
+.given-list.locked .qopt:not(.on){ opacity:.4; }
+.pick-note{ font-size:.88rem; color:var(--ink-soft); margin:-6px 0 18px; }
+.pick-hint{ align-self:center; font-family:var(--mono); font-size:.76rem; color:var(--ink-soft); }
 .eq-line{
   margin-top:26px; padding:18px 20px; border-top:1px dashed var(--line-strong);
   font-family:var(--mono); font-size:clamp(.9rem,1.7vw,1.05rem); line-height:1.9; color:var(--rose-ink);
@@ -813,12 +846,13 @@ h2{ font-size:clamp(1.7rem, 4vw, 2.5rem); }
       </div>
       <div class="given-label">Дано:</div>
       <div class="given-a">A — <b>Анна</b></div>
+      <div class="pick-note" id="r4PickNote">Отметь, из чего складывается A. Правильных ответов здесь нет — формула твоя.</div>
       <ul class="given-list" id="r4List"></ul>
       <div class="eq-line" id="r4Eq"></div>
       <div class="find-line hidden" id="r4Find">Найти: чему равна A?</div>
       <div class="task-actions">
-        <button class="btn btn-ghost btn-sm hidden" id="btnR4SkipAnim">⏩ показать всё сразу</button>
-        <button class="btn btn-primary hidden" id="btnSolve">Найти решение</button>
+        <button class="btn btn-primary hidden" id="btnSolve" disabled>Найти решение</button>
+        <span class="pick-hint hidden" id="r4PickHint">отметь хотя бы одно слагаемое</span>
       </div>
 
       <div class="solver hidden" id="solver">
@@ -2064,30 +2098,44 @@ $('#btnToR4').addEventListener('click', () => runRound4());
 
 /* ══════════════════════════════════════════════════════════════
    РАУНД 4 — «Формула Анны»
-   Утверждения по одному подставляются в уравнение, затем «решатель»
-   честно признаётся: решения нет.
+   Качества выбираются симпатичными чекбоксами (правильных ответов нет),
+   формула строится из отмеченных, затем «решатель» честно признаётся:
+   решения нет — при любом наборе слагаемых.
    ══════════════════════════════════════════════════════════════ */
-const R4 = { skip: false, terms: 0 };
+const R4 = { picked: new Set(), locked: false };
 
 const SUB = ['₀','₁','₂','₃','₄','₅','₆','₇','₈','₉'];
 const subNum = (n) => String(n).split('').map(d => SUB[+d]).join('');
 
 function r4RenderEq() {
-  const parts = [];
-  for (let i = 1; i <= R4.terms; i++) parts.push('x' + subNum(i));
+  const parts = [...R4.picked].sort((a, b) => a - b).map(i => 'x' + subNum(i + 1));
   $('#r4Eq').textContent = 'A = ' + (parts.length ? parts.join(' + ') : '…');
+}
+
+function r4Toggle(i, li) {
+  if (R4.locked) return;
+  if (R4.picked.has(i)) { R4.picked.delete(i); li.classList.remove('on'); }
+  else                  { R4.picked.add(i);    li.classList.add('on');    }
+  li.setAttribute('aria-checked', R4.picked.has(i));
+  r4RenderEq();
+  const any = R4.picked.size > 0;
+  $('#btnSolve').disabled = !any;
+  $('#r4PickHint').classList.toggle('hidden', any);
 }
 
 async function runRound4() {
   setStep(4); setChip('задача № 5');
   show('#s-r4');
-  R4.skip = false; R4.terms = 0;
+  R4.picked.clear(); R4.locked = false;
 
   const list = $('#r4List');
   list.innerHTML = '';
+  list.classList.remove('locked');
   $('#r4Eq').textContent = 'A = …';
   $('#r4Find').classList.add('hidden');
   $('#btnSolve').classList.add('hidden');
+  $('#btnSolve').disabled = true;
+  $('#r4PickHint').classList.add('hidden');
   $('#solver').classList.add('hidden');
   $('#solverLog').innerHTML = '';
   $('#solveFail').classList.add('hidden');
@@ -2097,29 +2145,39 @@ async function runRound4() {
   $('#btnToFinal').classList.add('hidden');
   ['#afterLine1', '#afterLine2', '#afterLine3'].forEach(s => { $(s).textContent = ''; });
 
-  const skipBtn = $('#btnR4SkipAnim');
-  skipBtn.classList.remove('hidden');
-
-  for (let i = 0; i < CONFIG.qualities.length; i++) {
+  // карточки-чекбоксы появляются быстрой лесенкой
+  CONFIG.qualities.forEach((q, i) => {
     const li = document.createElement('li');
-    li.innerHTML = `<span class="ck">✔</span><span>${CONFIG.qualities[i]}</span>`;
+    li.className = 'qopt';
+    li.setAttribute('role', 'checkbox');
+    li.setAttribute('aria-checked', 'false');
+    li.tabIndex = 0;
+    li.innerHTML =
+      `<span class="box" aria-hidden="true"></span>` +
+      `<span>${q}</span>` +
+      `<span class="xi">x${subNum(i + 1)}</span>`;
+    li.addEventListener('click', () => r4Toggle(i, li));
+    li.addEventListener('keydown', e => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); r4Toggle(i, li); }
+    });
     list.appendChild(li);
-    requestAnimationFrame(() => requestAnimationFrame(() => li.classList.add('show')));
-    R4.terms = i + 1;
-    r4RenderEq();
-    if (!R4.skip) await sleep(760);
-  }
+    setTimeout(() => li.classList.add('show'), 120 + i * 55);
+  });
 
-  skipBtn.classList.add('hidden');
+  await sleep(120 + CONFIG.qualities.length * 55 + 450);
   $('#r4Find').classList.remove('hidden');
   $('#r4Find').classList.add('rise-in');
-  await sleep(500);
+  await sleep(400);
   $('#btnSolve').classList.remove('hidden');
   $('#btnSolve').classList.add('rise-in');
+  $('#r4PickHint').classList.toggle('hidden', R4.picked.size > 0);
 }
-$('#btnR4SkipAnim').addEventListener('click', () => { R4.skip = true; });
 
 $('#btnSolve').addEventListener('click', async () => {
+  if (!R4.picked.size) return;
+  R4.locked = true;                       // выбор фиксируется, дальше — как прежде
+  $('#r4List').classList.add('locked');
+  $('#r4PickHint').classList.add('hidden');
   $('#btnSolve').classList.add('hidden');
   const solver = $('#solver');
   solver.classList.remove('hidden');
