@@ -935,11 +935,12 @@ const CONFIG = {
 
   puzzle: {
     grid: 5,                     // 5 → 25 фрагментов, 6 → 36
-    // Индексы фрагментов (0…24 при сетке 5), где на фото виден жених.
-    // ВАЖНО: после загрузки r2.jpg откройте index.html?setup,
-    // отметьте плитки кликами и вставьте сюда полученный массив.
-    // По умолчанию — правые две колонки (жених стоит справа).
-    groomTiles: [3, 4, 8, 9, 13, 14, 18, 19, 23, 24],
+    // Фрагменты, где на фото виден жених. По умолчанию — блок 2×3 в центре:
+    // ряды 2–4, столбцы 3–4 (счёт с единицы) → id 7, 8, 12, 13, 17, 18.
+    // ПРАВИЛО ПОБЕДЫ: собрать эти фрагменты корректно ДРУГ ОТНОСИТЕЛЬНО
+    // ДРУГА в любом месте поля — дальше картина доложится сама.
+    // После загрузки r2.jpg сверьте разметку через index.html?setup.
+    groomTiles: [7, 8, 12, 13, 17, 18],
   },
 
   round1Questions: [
@@ -1640,13 +1641,14 @@ function makePlaceholder() {
   x.fillStyle = g; x.fillRect(0, 0, 900, 900);
   // силуэт невесты (слева, светлый)
   x.fillStyle = 'rgba(255,255,255,.85)';
-  x.beginPath(); x.arc(300, 300, 88, 0, 7); x.fill();
-  x.beginPath(); x.moveTo(300, 380); x.lineTo(170, 800); x.lineTo(430, 800); x.closePath(); x.fill();
-  // силуэт жениха (справа, тёмно-розовый) — совпадает с groomTiles по умолчанию
+  x.beginPath(); x.arc(170, 330, 80, 0, 7); x.fill();
+  x.beginPath(); x.moveTo(170, 402); x.lineTo(60, 790); x.lineTo(280, 790); x.closePath(); x.fill();
+  // силуэт жениха (тёмно-розовый) — в центральном блоке 2×3:
+  // столбцы 3–4, ряды 2–4 → совпадает с groomTiles по умолчанию
   x.fillStyle = '#C75B7F';
-  x.beginPath(); x.arc(640, 280, 84, 0, 7); x.fill();
-  x.fillRect(560, 372, 160, 300);
-  x.fillRect(576, 672, 52, 150); x.fillRect(692, 672, 52, 150);
+  x.beginPath(); x.arc(540, 272, 66, 0, 7); x.fill();
+  x.fillRect(474, 348, 132, 226);
+  x.fillRect(486, 574, 46, 136); x.fillRect(548, 574, 46, 136);
   x.fillStyle = 'rgba(122,42,70,.85)';
   x.font = '600 34px monospace'; x.textAlign = 'center';
   x.fillText('здесь будет r2.jpg', 450, 90);
@@ -1660,7 +1662,8 @@ async function runRound2Intro() {
   await pause(400, seq);
   await typeLine($('#r2iLead'),
     'Фотография рассыпалась на фрагменты. Восстанавливать всю не нужно — ' +
-    'найди и верни на место только те части, где виден Артём. Остальное… увидишь сама.',
+    'найди части, где виден Артём, и сложи их друг с другом в любом месте поля. ' +
+    'Остальное… увидишь сама.',
     { speed: 20, seq });
   $('#r2iActions').classList.remove('hidden');
   $('#r2iActions').classList.add('rise-in');
@@ -1689,16 +1692,17 @@ async function startPuzzle() {
 
 function shufflePuzzle() {
   const gs = groomSet();
-  let perm;
   let guard = 0;
   do {
-    perm = shuffle([...Array(R2.n).keys()]);
+    const perm = shuffle([...Array(R2.n).keys()]);
+    R2.slots = perm;                    // slots[pos] = id
+    R2.posOf = Array(R2.n);
+    perm.forEach((id, pos) => { R2.posOf[id] = pos; });
     guard++;
-    // ни один фрагмент жениха не должен случайно стоять на месте
-  } while (guard < 400 && [...gs].some(id => perm[id] === id));
-  R2.slots = perm;                      // slots[pos] = id
-  R2.posOf = Array(R2.n);
-  perm.forEach((id, pos) => { R2.posOf[id] = pos; });
+    // условия честного старта: ни один фрагмент жениха не стоит на своём
+    // «доме», и блок не собран заранее ни при каком смещении
+  } while (guard < 400 &&
+           ([...gs].some(id => R2.posOf[id] === id) || groomFormation().offset));
   R2.labels = shuffle([...Array(R2.n).keys()].map(i => i + 1));
 }
 
@@ -1771,15 +1775,46 @@ function moveTile(id) {
   el.style.top  = top  + '%';
 }
 
+/* Проверяет, сложен ли «блок Артёма» как единое целое в ЛЮБОМ месте поля.
+   Перебираются все смещения (dr, dc), при которых блок целиком помещается
+   на доске. Возвращает:
+     offset — {dr, dc}, если при каком-то смещении ВСЕ фрагменты жениха
+              стоят корректно друг относительно друга (иначе null);
+     best   — максимум согласованных фрагментов среди всех смещений
+              (для счётчика «|Артём| = k / 6»).
+   Работает с любой формой блока и любой сеткой — разметка через ?setup
+   остаётся совместимой. */
+function groomFormation() {
+  const g = R2.grid;
+  const ids = [...groomSet()];
+  if (!ids.length) return { offset: null, best: 0 };
+  const homeR = id => Math.floor(id / g), homeC = id => id % g;
+  const minR = Math.min(...ids.map(homeR)), maxR = Math.max(...ids.map(homeR));
+  const minC = Math.min(...ids.map(homeC)), maxC = Math.max(...ids.map(homeC));
+  let best = 0, offset = null;
+  for (let dr = -minR; dr <= g - 1 - maxR; dr++) {
+    for (let dc = -minC; dc <= g - 1 - maxC; dc++) {
+      let hit = 0;
+      for (const id of ids) {
+        const pos = (homeR(id) + dr) * g + (homeC(id) + dc);
+        if (R2.posOf[id] === pos) hit++;
+      }
+      if (hit > best) best = hit;
+      if (hit === ids.length) offset = { dr, dc };
+    }
+  }
+  return { offset, best };
+}
+
 function isGroomAssembled() {
-  return [...groomSet()].every(id => R2.posOf[id] === id);
+  return groomFormation().offset !== null;
 }
 
 function updatePuzzleProgress() {
   const gs = groomSet();
-  const done = [...gs].filter(id => R2.posOf[id] === id).length;
-  $('#r2Prog').textContent = `|Артём| = ${done} / ${gs.size}`;
-  setChip(`фрагменты жениха: ${done} / ${gs.size}`);
+  const { best } = groomFormation();
+  $('#r2Prog').textContent = `|Артём| = ${best} / ${gs.size}`;
+  setChip(`фрагменты жениха: ${best} / ${gs.size}`);
 }
 
 $('#btnShuffle').addEventListener('click', () => {
@@ -1800,14 +1835,32 @@ $('#btnShuffle').addEventListener('click', () => {
 async function finishPuzzle() {
   R2.locked = true; R2.solved = true;
   $('#btnShuffle').classList.add('hidden');
+  const gs = groomSet();
+  const { offset } = groomFormation();
+  setChip('Артём найден ♥');
   await sleep(650);
 
-  // магия: остальные фрагменты возвращаются домой сами
+  // акт I: собранный блок жениха единым целым скользит на своё место,
+  // фрагменты, занимавшие его «дом», синхронно уступают позиции
+  if (offset && (offset.dr || offset.dc)) {
+    for (const id of gs) {
+      if (R2.posOf[id] === id) continue;
+      const pos = R2.posOf[id];
+      const other = R2.slots[id];         // кто стоит на «доме» этого фрагмента
+      R2.slots[pos] = other; R2.posOf[other] = pos;
+      R2.slots[id]  = id;    R2.posOf[id]  = id;
+      moveTile(id); moveTile(other);
+    }
+    updatePuzzleProgress();
+    await sleep(1000);                    // блок доскальзывает
+  }
+
+  // акт II: остальные фрагменты возвращаются домой сами, вразнобой
   const rest = shuffle([...Array(R2.n).keys()].filter(id => R2.posOf[id] !== id));
   rest.forEach((id, k) => {
     setTimeout(() => {
       const pos = R2.posOf[id];
-      const other = R2.slots[id];           // кто занимает «дом» этой плитки
+      const other = R2.slots[id];
       R2.slots[pos] = other; R2.posOf[other] = pos;
       R2.slots[id] = id;     R2.posOf[id] = id;
       moveTile(id); moveTile(other);
